@@ -1,0 +1,275 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-1",
+        "name": "Главный ботанический сад",
+        "description": "Ботанический сад РАН",
+        "reward": "Медаль «Главный ботанический сад»",
+        "radius_m": 120,
+        "trackIndex": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.593179,
+          55.840205
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-2",
+        "name": "Парк Останкино",
+        "description": "Парк вокруг усадьбы Останкино",
+        "reward": "Медаль «Парк Останкино»",
+        "radius_m": 120,
+        "trackIndex": 24
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.605324,
+          55.832072
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-3",
+        "name": "Тимирязевский парк",
+        "description": "Лесопарк Тимирязевской академии",
+        "reward": "Медаль «Тимирязевский парк»",
+        "radius_m": 120,
+        "trackIndex": 2045
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.550499,
+          55.833081
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-4",
+        "name": "Покровское-Стрешнево",
+        "description": "Парк Покровское-Стрешнево",
+        "reward": "Медаль «Покровское-Стрешнево»",
+        "radius_m": 120,
+        "trackIndex": 1863
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.468273,
+          55.827116
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-5",
+        "name": "Серебряный Бор",
+        "description": "Серебряный Бор / Строгино",
+        "reward": "Медаль «Серебряный Бор»",
+        "radius_m": 120,
+        "trackIndex": 1778
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.41817,
+          55.792569
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-6",
+        "name": "Крылатские холмы",
+        "description": "Лыжный / велопарк Крылатское",
+        "reward": "Медаль «Крылатские холмы»",
+        "radius_m": 120,
+        "trackIndex": 1639
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.435829,
+          55.749632
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-7",
+        "name": "Парк Фили",
+        "description": "Парк Фили",
+        "reward": "Медаль «Парк Фили»",
+        "radius_m": 120,
+        "trackIndex": 1586
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.485311,
+          55.74489
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-8",
+        "name": "Воробьёвы горы",
+        "description": "Природный заказник Воробьёвы горы",
+        "reward": "Медаль «Воробьёвы горы»",
+        "radius_m": 120,
+        "trackIndex": 1457
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.542732,
+          55.709678
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-9",
+        "name": "Битцевский лес",
+        "description": "Битцевский лесопарк",
+        "reward": "Медаль «Битцевский лес»",
+        "radius_m": 120,
+        "trackIndex": 1049
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.571914,
+          55.606016
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-10",
+        "name": "Царицыно",
+        "description": "Музей-заповедник Царицыно",
+        "reward": "Медаль «Царицыно»",
+        "radius_m": 120,
+        "trackIndex": 790
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.679481,
+          55.615371
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-11",
+        "name": "Кузьминки",
+        "description": "Парк Кузьминки-Люблино",
+        "reward": "Медаль «Кузьминки»",
+        "radius_m": 120,
+        "trackIndex": 485
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.788916,
+          55.690773
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-12",
+        "name": "Кусково",
+        "description": "Усадьба Кусково",
+        "reward": "Медаль «Кусково»",
+        "radius_m": 120,
+        "trackIndex": 389
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.801618,
+          55.73635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-13",
+        "name": "Измайловский парк",
+        "description": "Измайловский лесопарк",
+        "reward": "Медаль «Измайловский парк»",
+        "radius_m": 120,
+        "trackIndex": 267
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.768659,
+          55.791195
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-14",
+        "name": "Сокольники",
+        "description": "Парк Сокольники",
+        "reward": "Медаль «Сокольники»",
+        "radius_m": 120,
+        "trackIndex": 123
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.676799,
+          55.819691
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-15",
+        "name": "Лосиный Остров",
+        "description": "Нацпарк Лосиный Остров (край)",
+        "reward": "Медаль «Лосиный Остров»",
+        "radius_m": 120,
+        "trackIndex": 113
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.669225,
+          55.825635
+        ]
+      }
+    }
+  ]
+}

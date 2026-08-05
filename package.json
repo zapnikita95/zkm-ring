@@ -1,0 +1,20 @@
+{
+  "name": "zkm-ring",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "import-gpx": "python3 scripts/import_gpx.py"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0",
+    "vite-plugin-pwa": "^1.3.0"
+  },
+  "dependencies": {
+    "maplibre-gl": "^6.1.0"
+  }
+}
