@@ -1,11 +1,34 @@
-server/data/
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules/
 server/node_modules/
+server/data/
+
+dist
+dist-ssr
+*.local
+
+# APK artifacts (keep local copies outside git)
 *.apk
-!README.md
-.gradle/
+
+# Android build
 android/.gradle/
-android/app/build/
-android/build/
-android/capacitor-cordova-android-plugins/build/
+android/**/build/
 android/local.properties
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+.gradle/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
