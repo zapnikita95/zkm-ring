@@ -81,9 +81,38 @@ export function completeRoute(body: {
   seconds: number
   mode: 'bike' | 'walk'
   landmarks: Array<{ id: string; category: string }>
+  startLabel?: string
+  endLabel?: string
+  direction?: 'cw' | 'ccw'
+  route?: Array<{ lat: number; lon: number }>
 }) {
   return api<{ profile: Profile; newAchievements: Achievement[] }>('/api/routes/complete', {
     method: 'POST',
     body: JSON.stringify(body),
   })
+}
+
+export type RouteHistoryItem = {
+  id: number
+  meters: number
+  seconds: number
+  mode: 'bike' | 'walk' | string
+  startLabel: string
+  endLabel: string
+  direction: string
+  landmarks: Array<{ id?: string; category?: string; name?: string }>
+  route: Array<{ lat: number; lon: number }>
+  createdAt: string
+}
+
+export function fetchRouteHistory() {
+  return api<{ items: RouteHistoryItem[] }>('/api/routes/history')
+}
+
+export function fetchRouteById(id: number) {
+  return api<{ item: RouteHistoryItem }>(`/api/routes/${id}`)
+}
+
+export function deleteRoute(id: number) {
+  return api<{ ok: boolean; profile: Profile }>(`/api/routes/${id}`, { method: 'DELETE' })
 }

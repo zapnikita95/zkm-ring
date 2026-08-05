@@ -11,8 +11,10 @@ dist
 dist-ssr
 *.local
 
-# APK artifacts (keep local copies outside git)
+# APK / IPA artifacts (keep local copies outside git)
 *.apk
+*.ipa
+secrets/
 
 # Android build
 android/.gradle/
@@ -21,6 +23,12 @@ android/local.properties
 android/app/build/
 android/capacitor-cordova-android-plugins/build/
 .gradle/
+
+# iOS
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/DerivedData/
+ios/build/
 
 # Editor
 .vscode/*
@@ -32,3 +40,11 @@ android/capacitor-cordova-android-plugins/build/
 *.njsproj
 *.sln
 *.sw?
+
+# Local tooling / agent
+.serena/
+.layero/
+.railway/
+
+# Cap sync web build (regenerate via npm run build)
+# already listed as dist — ensure untracked

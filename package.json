@@ -10,9 +10,12 @@
     "import-gpx": "python3 scripts/import_gpx.py",
     "server": "npm --prefix server start",
     "android:sync": "npm run build && npx cap sync android",
-    "android:apk": "cd android && ./gradlew assembleDebug"
+    "android:apk": "cd android && ./gradlew assembleDebug",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "devDependencies": {
+    "playwright": "^1.62.1",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vite-plugin-pwa": "^1.3.0"
@@ -22,6 +25,7 @@
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@capacitor/geolocation": "^8.2.0",
+    "@capacitor/ios": "^8.5.0",
     "maplibre-gl": "^6.1.0"
   }
 }

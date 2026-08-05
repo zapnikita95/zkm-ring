@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#cfe9c4"/>
+      <stop offset="50%" stop-color="#4f9a5c"/>
+      <stop offset="100%" stop-color="#1a3f28"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- кольцо -->
+  <circle cx="512" cy="512" r="358" fill="none" stroke="#143224" stroke-width="50"/>
+
+  <!-- земля: тонкая полоска у низа кольца (~7% высоты), не холм -->
+  <path
+    d="M300 690
+       C400 672 460 666 512 666
+       C564 666 624 672 724 690
+       L716 722
+       C620 738 404 738 308 722 Z"
+    fill="#f3eee4"/>
+
+  <!-- листья -->
+  <g fill="#143224" stroke="#143224" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M270 505 C305 460 345 415 388 382" fill="none" stroke-width="11"/>
+    <ellipse cx="312" cy="452" rx="20" ry="34" transform="rotate(-38 312 452)"/>
+    <ellipse cx="352" cy="414" rx="22" ry="36" transform="rotate(-28 352 414)"/>
+    <ellipse cx="390" cy="382" rx="18" ry="30" transform="rotate(-18 390 382)"/>
+  </g>
+
+  <!-- человек слева -->
+  <g fill="none" stroke="#f3eee4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="400" cy="500" r="28" fill="#f3eee4" stroke="none"/>
+    <path d="M400 532 L400 612" stroke-width="20"/>
+    <path d="M400 556 L352 598" stroke-width="15"/>
+    <path d="M400 556 L452 580" stroke-width="15"/>
+    <path d="M400 612 L360 678" stroke-width="17"/>
+    <path d="M400 612 L444 648 L472 682" stroke-width="17"/>
+  </g>
+
+  <!-- велосипед справа, масштаб как у человека -->
+  <g fill="none" stroke="#f3eee4" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="560" cy="658" r="52"/>
+    <circle cx="718" cy="658" r="52"/>
+    <path d="M560 658 L618 658 L655 555 L718 658"/>
+    <path d="M618 658 L655 555 L600 555"/>
+    <path d="M655 555 L692 505"/>
+    <path d="M672 503 L736 498"/>
+    <path d="M578 544 L628 544"/>
+  </g>
+</svg>

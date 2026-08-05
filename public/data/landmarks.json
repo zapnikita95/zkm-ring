@@ -1,29 +1,2393 @@
 {
   "type": "FeatureCollection",
   "features": [
-    {"type":"Feature","properties":{"id":"park-botanic","name":"Главный ботанический сад","category":"park","description":"Ботанический сад РАН","radius_m":120},"geometry":{"type":"Point","coordinates":[37.59318,55.84021]}},
-    {"type":"Feature","properties":{"id":"park-ostankino","name":"Парк Останкино","category":"park","description":"Усадьба Останкино","radius_m":120},"geometry":{"type":"Point","coordinates":[37.60532,55.83207]}},
-    {"type":"Feature","properties":{"id":"park-timiryazev","name":"Тимирязевский парк","category":"park","description":"Лесопарк академии","radius_m":120},"geometry":{"type":"Point","coordinates":[37.55,55.835]}},
-    {"type":"Feature","properties":{"id":"park-streshnevo","name":"Покровское-Стрешнево","category":"park","description":"Парк Покровское-Стрешнево","radius_m":120},"geometry":{"type":"Point","coordinates":[37.47,55.84]}},
-    {"type":"Feature","properties":{"id":"park-serebryany","name":"Серебряный Бор","category":"park","description":"Серебряный Бор","radius_m":140},"geometry":{"type":"Point","coordinates":[37.42,55.785]}},
-    {"type":"Feature","properties":{"id":"park-krylatskoe","name":"Крылатские холмы","category":"park","description":"Крылатское","radius_m":120},"geometry":{"type":"Point","coordinates":[37.43,55.76]}},
-    {"type":"Feature","properties":{"id":"park-fili","name":"Парк Фили","category":"park","description":"Парк Фили","radius_m":120},"geometry":{"type":"Point","coordinates":[37.485,55.745]}},
-    {"type":"Feature","properties":{"id":"park-vorobyovy","name":"Воробьёвы горы","category":"park","description":"Заказник","radius_m":120},"geometry":{"type":"Point","coordinates":[37.545,55.71]}},
-    {"type":"Feature","properties":{"id":"park-bitsa","name":"Битцевский лес","category":"park","description":"Битцевский лесопарк","radius_m":140},"geometry":{"type":"Point","coordinates":[37.57,55.60]}},
-    {"type":"Feature","properties":{"id":"park-tsaritsyno","name":"Царицыно","category":"park","description":"Музей-заповедник","radius_m":140},"geometry":{"type":"Point","coordinates":[37.68,55.615]}},
-    {"type":"Feature","properties":{"id":"park-kuzminki","name":"Кузьминки","category":"park","description":"Кузьминки-Люблино","radius_m":120},"geometry":{"type":"Point","coordinates":[37.79,55.69]}},
-    {"type":"Feature","properties":{"id":"park-kuskovo","name":"Кусково","category":"park","description":"Усадьба Кусково","radius_m":120},"geometry":{"type":"Point","coordinates":[37.805,55.735]}},
-    {"type":"Feature","properties":{"id":"park-izmailovo","name":"Измайловский парк","category":"park","description":"Измайлово","radius_m":140},"geometry":{"type":"Point","coordinates":[37.77,55.79]}},
-    {"type":"Feature","properties":{"id":"park-sokolniki","name":"Сокольники","category":"park","description":"Парк Сокольники","radius_m":120},"geometry":{"type":"Point","coordinates":[37.675,55.80]}},
-    {"type":"Feature","properties":{"id":"park-losiny","name":"Лосиный Остров","category":"park","description":"Край нацпарка","radius_m":140},"geometry":{"type":"Point","coordinates":[37.68,55.845]}},
-    {"type":"Feature","properties":{"id":"lake-strogino","name":"Строгинский затон","category":"lake","description":"Водоём Строгино","radius_m":130},"geometry":{"type":"Point","coordinates":[37.405,55.795]}},
-    {"type":"Feature","properties":{"id":"lake-serebryany","name":"Озеро Бездонное","category":"lake","description":"Серебряный Бор","radius_m":120},"geometry":{"type":"Point","coordinates":[37.425,55.782]}},
-    {"type":"Feature","properties":{"id":"lake-tsaritsyno","name":"Царицынские пруды","category":"lake","description":"Пруды Царицыно","radius_m":120},"geometry":{"type":"Point","coordinates":[37.682,55.617]}},
-    {"type":"Feature","properties":{"id":"lake-kuskovo","name":"Кусковский пруд","category":"lake","description":"Большой пруд","radius_m":120},"geometry":{"type":"Point","coordinates":[37.808,55.734]}},
-    {"type":"Feature","properties":{"id":"lake-izmailovo","name":"Круглое озеро","category":"lake","description":"Измайлово","radius_m":120},"geometry":{"type":"Point","coordinates":[37.775,55.788]}},
-    {"type":"Feature","properties":{"id":"view-vorobyovy","name":"Смотровая Воробьёвых","category":"viewpoint","description":"Панорама Москвы","radius_m":100},"geometry":{"type":"Point","coordinates":[37.542,55.710]}},
-    {"type":"Feature","properties":{"id":"view-krylatskoe","name":"Трамплин Крылатское","category":"viewpoint","description":"Видовая точка","radius_m":100},"geometry":{"type":"Point","coordinates":[37.435,55.758]}},
-    {"type":"Feature","properties":{"id":"heritage-defense","name":"Линия обороны Москвы","category":"heritage","description":"Историческая точка ЗКМ","radius_m":90},"geometry":{"type":"Point","coordinates":[37.45,55.82]}},
-    {"type":"Feature","properties":{"id":"heritage-aqueduct","name":"Ростокинский акведук","category":"heritage","description":"Открыт по выходным","radius_m":90},"geometry":{"type":"Point","coordinates":[37.657,55.830]}}
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-0-9",
+        "name": "Начало ЗКМ-100 миль",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 0,
+        "ringIndex": 0,
+        "snapDist_m": 2,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 0,
+        "orderCcw": 102
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.587235,
+          55.842715
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-botanic",
+        "name": "Главный ботанический сад",
+        "category": "park",
+        "description": "Ботанический сад РАН",
+        "radius_m": 120,
+        "trackIndex": 11,
+        "ringIndex": 11,
+        "snapDist_m": 1,
+        "orderCw": 1,
+        "orderCcw": 101
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.593179,
+          55.840205
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-ostankino",
+        "name": "Парк Останкино",
+        "category": "park",
+        "description": "Усадьба Останкино",
+        "radius_m": 120,
+        "trackIndex": 24,
+        "ringIndex": 24,
+        "snapDist_m": 0,
+        "orderCw": 2,
+        "orderCcw": 100
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.605324,
+          55.832072
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-51",
+        "name": "Зелёная дуга · 51",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 51,
+        "ringIndex": 51,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 3,
+        "orderCcw": 99
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.632983,
+          55.842114
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-86-87",
+        "name": "памятник дворовому капитану",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 86,
+        "ringIndex": 86,
+        "snapDist_m": 5,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 4,
+        "orderCcw": 98
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.652767,
+          55.835634
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-losiny",
+        "name": "Лосиный Остров",
+        "category": "park",
+        "description": "Край нацпарка",
+        "radius_m": 140,
+        "trackIndex": 113,
+        "ringIndex": 93,
+        "snapDist_m": 1961,
+        "orderCw": 5,
+        "orderCcw": 97
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.658882,
+          55.831944
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-93-58",
+        "name": "памятник дворнику",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 93,
+        "ringIndex": 93,
+        "snapDist_m": 5,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 6,
+        "orderCcw": 96
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.658925,
+          55.831944
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "heritage-aqueduct",
+        "name": "Ростокинский акведук",
+        "category": "heritage",
+        "description": "Открыт по выходным",
+        "radius_m": 90,
+        "trackIndex": 96,
+        "ringIndex": 96,
+        "snapDist_m": 18,
+        "orderCw": 7,
+        "orderCcw": 95
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.656951,
+          55.830163
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-96-2",
+        "name": "акведук открыт только по выходным дням.",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 96,
+        "ringIndex": 96,
+        "snapDist_m": 12,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 8,
+        "orderCcw": 94
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.657015,
+          55.830077
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-sokolniki",
+        "name": "Сокольники",
+        "category": "park",
+        "description": "Парк Сокольники",
+        "radius_m": 120,
+        "trackIndex": 123,
+        "ringIndex": 123,
+        "snapDist_m": 2192,
+        "orderCw": 9,
+        "orderCcw": 93
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.676799,
+          55.819691
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-179",
+        "name": "Зелёная дуга · 179",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 179,
+        "ringIndex": 179,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 10,
+        "orderCcw": 92
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.709994,
+          55.820292
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-217",
+        "name": "Зелёная дуга · 217",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 217,
+        "ringIndex": 217,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 11,
+        "orderCcw": 91
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.737417,
+          55.801173
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-226-92",
+        "name": "Локомотив",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 226,
+        "ringIndex": 226,
+        "snapDist_m": 159,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 12,
+        "orderCcw": 90
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.741215,
+          55.80171
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-izmailovo",
+        "name": "Измайловский парк",
+        "category": "park",
+        "description": "Измайлово",
+        "radius_m": 140,
+        "trackIndex": 267,
+        "ringIndex": 267,
+        "snapDist_m": 157,
+        "orderCw": 13,
+        "orderCcw": 89
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.768659,
+          55.791195
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lake-izmailovo",
+        "name": "Круглое озеро",
+        "category": "lake",
+        "description": "Измайлово",
+        "radius_m": 120,
+        "trackIndex": 278,
+        "ringIndex": 278,
+        "snapDist_m": 255,
+        "orderCw": 14,
+        "orderCcw": 88
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.779002,
+          55.788427
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-317",
+        "name": "Зелёная дуга · 317",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 317,
+        "ringIndex": 317,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 15,
+        "orderCcw": 87
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.797241,
+          55.768879
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-335-4",
+        "name": "Рисунок на дереве",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 335,
+        "ringIndex": 335,
+        "snapDist_m": 60,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 16,
+        "orderCcw": 86
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.809601,
+          55.762721
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-359",
+        "name": "Зелёная дуга · 359",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 359,
+        "ringIndex": 359,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 17,
+        "orderCcw": 85
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.82417,
+          55.756734
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-kuskovo",
+        "name": "Кусково",
+        "category": "park",
+        "description": "Усадьба Кусково",
+        "radius_m": 120,
+        "trackIndex": 389,
+        "ringIndex": 389,
+        "snapDist_m": 260,
+        "orderCw": 18,
+        "orderCcw": 84
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.801618,
+          55.73635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lake-kuskovo",
+        "name": "Кусковский пруд",
+        "category": "lake",
+        "description": "Большой пруд",
+        "radius_m": 120,
+        "trackIndex": 381,
+        "ringIndex": 395,
+        "snapDist_m": 404,
+        "orderCw": 19,
+        "orderCcw": 83
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.80164,
+          55.733367
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-438",
+        "name": "Зелёная дуга · 438",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 438,
+        "ringIndex": 438,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 20,
+        "orderCcw": 82
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.78456,
+          55.711287
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-482-51",
+        "name": "скамья Любви и Верности",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 482,
+        "ringIndex": 482,
+        "snapDist_m": 27,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 21,
+        "orderCcw": 81
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.788551,
+          55.690902
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-kuzminki",
+        "name": "Кузьминки",
+        "category": "park",
+        "description": "Кузьминки-Люблино",
+        "radius_m": 120,
+        "trackIndex": 485,
+        "ringIndex": 486,
+        "snapDist_m": 108,
+        "orderCw": 22,
+        "orderCcw": 80
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.788572,
+          55.690537
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-490-52",
+        "name": "Скульптуры коней",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 490,
+        "ringIndex": 490,
+        "snapDist_m": 64,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 23,
+        "orderCcw": 79
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.784967,
+          55.689486
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-524",
+        "name": "Зелёная дуга · 524",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 524,
+        "ringIndex": 524,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 24,
+        "orderCcw": 78
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.827282,
+          55.684744
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-561",
+        "name": "Зелёная дуга · 561",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 561,
+        "ringIndex": 561,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 25,
+        "orderCcw": 77
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.822711,
+          55.659917
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "alert-577-104",
+        "name": "нет светофора, нет перехода. Идёт стройка.",
+        "category": "alert",
+        "description": "Внимание на тропе",
+        "radius_m": 60,
+        "trackIndex": 577,
+        "ringIndex": 577,
+        "snapDist_m": 154,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 26,
+        "orderCcw": 76
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.811296,
+          55.659059
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "alert-588-109",
+        "name": "Дырка в заборе. :( По другому ни как.",
+        "category": "alert",
+        "description": "Внимание на тропе",
+        "radius_m": 60,
+        "trackIndex": 588,
+        "ringIndex": 588,
+        "snapDist_m": 22,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 27,
+        "orderCcw": 75
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.809987,
+          55.672728
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-599",
+        "name": "Зелёная дуга · 599",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 599,
+        "ringIndex": 599,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 28,
+        "orderCcw": 74
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.79619,
+          55.671504
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "alert-621-108",
+        "name": "Стройка переходов нет. :(",
+        "category": "alert",
+        "description": "Внимание на тропе",
+        "radius_m": 60,
+        "trackIndex": 621,
+        "ringIndex": 621,
+        "snapDist_m": 97,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 29,
+        "orderCcw": 73
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.779732,
+          55.660518
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-632-54",
+        "name": "Памятник",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 632,
+        "ringIndex": 632,
+        "snapDist_m": 51,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 30,
+        "orderCcw": 72
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.77544,
+          55.651871
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-634",
+        "name": "Зелёная дуга · 634",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 634,
+        "ringIndex": 634,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 31,
+        "orderCcw": 71
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.772393,
+          55.650669
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-645-55",
+        "name": "Памятник Г.Х.Андерсену",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 645,
+        "ringIndex": 645,
+        "snapDist_m": 22,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 32,
+        "orderCcw": 70
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.764304,
+          55.647365
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-648-56",
+        "name": "Памятник студенческим приметам",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 648,
+        "ringIndex": 648,
+        "snapDist_m": 12,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 33,
+        "orderCcw": 69
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.761192,
+          55.645798
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-650-107",
+        "name": "Самая низкая точка ЗКМ 110 метров над уровнем моря.",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 650,
+        "ringIndex": 650,
+        "snapDist_m": 12,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 34,
+        "orderCcw": 68
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.759948,
+          55.64494
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-675",
+        "name": "Зелёная дуга · 675",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 675,
+        "ringIndex": 675,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 35,
+        "orderCcw": 67
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.738275,
+          55.639125
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-724",
+        "name": "Зелёная дуга · 724",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 724,
+        "ringIndex": 724,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 36,
+        "orderCcw": 66
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.706582,
+          55.629061
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lake-tsaritsyno",
+        "name": "Царицынские пруды",
+        "category": "lake",
+        "description": "Пруды Царицыно",
+        "radius_m": 120,
+        "trackIndex": 784,
+        "ringIndex": 784,
+        "snapDist_m": 84,
+        "orderCw": 37,
+        "orderCcw": 65
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.680812,
+          55.616659
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-tsaritsyno",
+        "name": "Царицыно",
+        "category": "park",
+        "description": "Музей-заповедник",
+        "radius_m": 140,
+        "trackIndex": 790,
+        "ringIndex": 790,
+        "snapDist_m": 53,
+        "orderCw": 38,
+        "orderCcw": 64
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.679481,
+          55.615371
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-854",
+        "name": "Зелёная дуга · 854",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 854,
+        "ringIndex": 854,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 39,
+        "orderCcw": 63
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.70875,
+          55.596832
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-896-78",
+        "name": "Сакуровая аллея, роща.",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 896,
+        "ringIndex": 896,
+        "snapDist_m": 24,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 40,
+        "orderCcw": 62
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.68167,
+          55.593441
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-900-84",
+        "name": "Еловая аллея",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 900,
+        "ringIndex": 900,
+        "snapDist_m": 7,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 41,
+        "orderCcw": 61
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.683236,
+          55.594235
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-901",
+        "name": "Зелёная дуга · 901",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 901,
+        "ringIndex": 901,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 42,
+        "orderCcw": 60
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.682164,
+          55.595051
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-902-83",
+        "name": "Рябиновая аллея",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 902,
+        "ringIndex": 902,
+        "snapDist_m": 3,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 43,
+        "orderCcw": 59
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.679717,
+          55.595029
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-903-82",
+        "name": "Кленовая аллея",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 903,
+        "ringIndex": 903,
+        "snapDist_m": 12,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 44,
+        "orderCcw": 58
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.679632,
+          55.596703
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-909-80",
+        "name": "Листвиничная аллея",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 909,
+        "ringIndex": 909,
+        "snapDist_m": 2,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 45,
+        "orderCcw": 57
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.677207,
+          55.598591
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-910-79",
+        "name": "Туевая аллея",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 910,
+        "ringIndex": 910,
+        "snapDist_m": 21,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 46,
+        "orderCcw": 56
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.675168,
+          55.598613
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-939",
+        "name": "Зелёная дуга · 939",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 939,
+        "ringIndex": 939,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 47,
+        "orderCcw": 55
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.643432,
+          55.590888
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-993",
+        "name": "Зелёная дуга · 993",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 993,
+        "ringIndex": 993,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 48,
+        "orderCcw": 54
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.617447,
+          55.603419
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1009-85",
+        "name": "Памятник Родная Гавань",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1009,
+        "ringIndex": 1009,
+        "snapDist_m": 5,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 49,
+        "orderCcw": 53
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.604036,
+          55.606402
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-bitsa",
+        "name": "Битцевский лес",
+        "category": "park",
+        "description": "Битцевский лесопарк",
+        "radius_m": 140,
+        "trackIndex": 1049,
+        "ringIndex": 1046,
+        "snapDist_m": 673,
+        "orderCw": 50,
+        "orderCcw": 52
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.574124,
+          55.605587
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-vorontsovo",
+        "name": "Воронцовский парк",
+        "category": "park",
+        "description": "Усадьба Воронцово",
+        "radius_m": 130,
+        "trackIndex": 1092,
+        "ringIndex": 1092,
+        "snapDist_m": 0,
+        "orderCw": 51,
+        "orderCcw": 51
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.540264,
+          55.628224
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-uzkoe",
+        "name": "Усадьба Узкое",
+        "category": "park",
+        "description": "Ясенево / Узкое",
+        "radius_m": 120,
+        "trackIndex": 1107,
+        "ringIndex": 1107,
+        "snapDist_m": 0,
+        "orderCw": 52,
+        "orderCcw": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.530866,
+          55.624019
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "heritage-highest",
+        "name": "Высшая точка Москвы",
+        "category": "heritage",
+        "description": "255 м над уровнем моря",
+        "radius_m": 100,
+        "trackIndex": 1123,
+        "ringIndex": 1123,
+        "snapDist_m": 0,
+        "orderCw": 53,
+        "orderCcw": 49
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.505073,
+          55.618762
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "heritage-dot",
+        "name": "ДОТ времён ВОВ",
+        "category": "heritage",
+        "description": "Точка обороны на ЗКМ",
+        "radius_m": 90,
+        "trackIndex": 1167,
+        "ringIndex": 1167,
+        "snapDist_m": 0,
+        "orderCw": 54,
+        "orderCcw": 48
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.495739,
+          55.63685
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-troparevo",
+        "name": "Тропарёвский лесопарк",
+        "category": "park",
+        "description": "ООПТ Тропарёво",
+        "radius_m": 140,
+        "trackIndex": 1199,
+        "ringIndex": 1199,
+        "snapDist_m": 0,
+        "orderCw": 55,
+        "orderCcw": 47
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.478809,
+          55.638545
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-50let",
+        "name": "Парк 50-летия Октября",
+        "category": "park",
+        "description": "Тропарёво",
+        "radius_m": 120,
+        "trackIndex": 1222,
+        "ringIndex": 1222,
+        "snapDist_m": 0,
+        "orderCw": 56,
+        "orderCcw": 46
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.472372,
+          55.645755
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-1250",
+        "name": "Зелёная дуга · 1250",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 1250,
+        "ringIndex": 1250,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 57,
+        "orderCcw": 45
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.460377,
+          55.655647
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-1299",
+        "name": "Зелёная дуга · 1299",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 1299,
+        "ringIndex": 1299,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 58,
+        "orderCcw": 44
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.455764,
+          55.671934
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-olympiyskaya",
+        "name": "Олимпийская деревня",
+        "category": "park",
+        "description": "Парк у Мичуринского",
+        "radius_m": 120,
+        "trackIndex": 1345,
+        "ringIndex": 1345,
+        "snapDist_m": 0,
+        "orderCw": 59,
+        "orderCcw": 43
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.470248,
+          55.678071
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "poi-yarygin",
+        "name": "Памятник Ярыгину",
+        "category": "heritage",
+        "description": "На маршруте ЗКМ",
+        "radius_m": 80,
+        "trackIndex": 1385,
+        "ringIndex": 1385,
+        "snapDist_m": 0,
+        "orderCw": 60,
+        "orderCcw": 42
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.492006,
+          55.683027
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1385-77",
+        "name": "памятник Ярыгину.",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1385,
+        "ringIndex": 1385,
+        "snapDist_m": 2,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 61,
+        "orderCcw": 41
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.492027,
+          55.683027
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "poi-labyrinth",
+        "name": "Зелёный лабиринт",
+        "category": "park",
+        "description": "Интересная точка ЗКМ",
+        "radius_m": 90,
+        "trackIndex": 1395,
+        "ringIndex": 1395,
+        "snapDist_m": 0,
+        "orderCw": 62,
+        "orderCcw": 40
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.502348,
+          55.681718
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "poi-ladooshki",
+        "name": "Ладошки",
+        "category": "heritage",
+        "description": "Арт-точка на кольце",
+        "radius_m": 80,
+        "trackIndex": 1399,
+        "ringIndex": 1399,
+        "snapDist_m": 0,
+        "orderCw": 63,
+        "orderCcw": 39
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.503829,
+          55.681139
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "view-mgu",
+        "name": "МГУ · Главное здание",
+        "category": "viewpoint",
+        "description": "Визитная точка Ленинских гор",
+        "radius_m": 110,
+        "trackIndex": 1444,
+        "ringIndex": 1444,
+        "snapDist_m": 0,
+        "orderCw": 64,
+        "orderCcw": 38
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.531423,
+          55.705
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "poi-busts",
+        "name": "Бюсты учёных России",
+        "category": "heritage",
+        "description": "Аллея у Воробьёвых",
+        "radius_m": 80,
+        "trackIndex": 1447,
+        "ringIndex": 1447,
+        "snapDist_m": 0,
+        "orderCw": 65,
+        "orderCcw": 37
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.535844,
+          55.706008
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "view-vorobyovy",
+        "name": "Смотровая Воробьёвых",
+        "category": "viewpoint",
+        "description": "Панорама Москвы",
+        "radius_m": 100,
+        "trackIndex": 1454,
+        "ringIndex": 1454,
+        "snapDist_m": 45,
+        "orderCw": 66,
+        "orderCcw": 36
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.541294,
+          55.709914
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-vorobyovy",
+        "name": "Воробьёвы горы",
+        "category": "park",
+        "description": "Заказник",
+        "radius_m": 120,
+        "trackIndex": 1457,
+        "ringIndex": 1457,
+        "snapDist_m": 147,
+        "orderCw": 67,
+        "orderCcw": 35
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.542732,
+          55.709678
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-1488",
+        "name": "Андреевский мост",
+        "category": "park",
+        "description": "Пешеходный мост",
+        "radius_m": 90,
+        "trackIndex": 1488,
+        "ringIndex": 1488,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 68,
+        "orderCcw": 34
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.534942,
+          55.727702
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-1535",
+        "name": "Лужнецкая набережная",
+        "category": "park",
+        "description": "Северный берег Лужников",
+        "radius_m": 90,
+        "trackIndex": 1535,
+        "ringIndex": 1535,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 69,
+        "orderCcw": 33
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.506575,
+          55.722424
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-1560",
+        "name": "Дорогомиловская набережная",
+        "category": "park",
+        "description": "К Фили",
+        "radius_m": 90,
+        "trackIndex": 1560,
+        "ringIndex": 1560,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 70,
+        "orderCcw": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.507884,
+          55.730513
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-fili",
+        "name": "Парк Фили",
+        "category": "park",
+        "description": "Парк Фили",
+        "radius_m": 120,
+        "trackIndex": 1586,
+        "ringIndex": 1586,
+        "snapDist_m": 23,
+        "orderCw": 71,
+        "orderCcw": 31
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.485311,
+          55.74489
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1603-30",
+        "name": "дерево новобрачных",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1603,
+        "ringIndex": 1603,
+        "snapDist_m": 52,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 72,
+        "orderCcw": 30
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.475762,
+          55.746327
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-1613",
+        "name": "Зелёная дуга · 1613",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 1613,
+        "ringIndex": 1613,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 73,
+        "orderCcw": 29
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.463059,
+          55.74077
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-krylatskoe",
+        "name": "Крылатские холмы",
+        "category": "park",
+        "description": "Крылатское",
+        "radius_m": 120,
+        "trackIndex": 1639,
+        "ringIndex": 1641,
+        "snapDist_m": 1124,
+        "orderCw": 74,
+        "orderCcw": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.439241,
+          55.751327
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "view-krylatskoe",
+        "name": "Трамплин Крылатское",
+        "category": "viewpoint",
+        "description": "Видовая точка",
+        "radius_m": 100,
+        "trackIndex": 1640,
+        "ringIndex": 1642,
+        "snapDist_m": 781,
+        "orderCw": 75,
+        "orderCcw": 27
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.4407,
+          55.751756
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-krylatskoe-valley",
+        "name": "Долина реки Сетунь",
+        "category": "park",
+        "description": "Участок у Крылатского",
+        "radius_m": 140,
+        "ringIndex": 1646,
+        "snapDist_m": 162,
+        "orderCw": 76,
+        "orderCcw": 26
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.448447,
+          55.753838
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-khoroshevo",
+        "name": "Хорошёвский парк",
+        "category": "park",
+        "description": "Парк Хорошёво-Мнёвники у кольца",
+        "radius_m": 140,
+        "ringIndex": 1666,
+        "snapDist_m": 918,
+        "orderCw": 77,
+        "orderCcw": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.452459,
+          55.770703
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-krylatskoe-bridge",
+        "name": "Живописный мост",
+        "category": "heritage",
+        "description": "Живописный мост у Крылатского",
+        "radius_m": 140,
+        "ringIndex": 1670,
+        "snapDist_m": 366,
+        "orderCw": 78,
+        "orderCcw": 24
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.446601,
+          55.774051
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lake-serebryany",
+        "name": "Озеро Бездонное",
+        "category": "lake",
+        "description": "Серебряный Бор",
+        "radius_m": 120,
+        "trackIndex": 1684,
+        "ringIndex": 1684,
+        "snapDist_m": 946,
+        "orderCw": 79,
+        "orderCcw": 23
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.425423,
+          55.773493
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-1740",
+        "name": "Зелёная дуга · 1740",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 1740,
+        "ringIndex": 1740,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 80,
+        "orderCcw": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.391305,
+          55.769244
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lake-strogino-south",
+        "name": "Южный вход Строгино",
+        "category": "lake",
+        "description": "Южный край Строгинского затона",
+        "radius_m": 140,
+        "ringIndex": 1764,
+        "snapDist_m": 218,
+        "orderCw": 81,
+        "orderCcw": 21
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.407591,
+          55.788685
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "lake-strogino",
+        "name": "Строгинский затон",
+        "category": "lake",
+        "description": "Водоём Строгино",
+        "radius_m": 130,
+        "trackIndex": 1767,
+        "ringIndex": 1769,
+        "snapDist_m": 366,
+        "orderCw": 82,
+        "orderCcw": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.410209,
+          55.793491
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-serebryany",
+        "name": "Серебряный Бор",
+        "category": "park",
+        "description": "Серебряный Бор",
+        "radius_m": 140,
+        "trackIndex": 1778,
+        "ringIndex": 1778,
+        "snapDist_m": 849,
+        "orderCw": 83,
+        "orderCcw": 19
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.41817,
+          55.792569
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-1804",
+        "name": "Зелёная дуга · 1804",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 1804,
+        "ringIndex": 1804,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 84,
+        "orderCcw": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.433555,
+          55.804285
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1832-76",
+        "name": "шлюз",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1832,
+        "ringIndex": 1832,
+        "snapDist_m": 126,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 85,
+        "orderCcw": 17
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.448082,
+          55.812975
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "heritage-defense",
+        "name": "Линия обороны Москвы",
+        "category": "heritage",
+        "description": "Историческая точка ЗКМ",
+        "radius_m": 90,
+        "trackIndex": 1849,
+        "ringIndex": 1850,
+        "snapDist_m": 245,
+        "orderCw": 86,
+        "orderCcw": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.453596,
+          55.819112
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1858-38",
+        "name": "бобровая плотина",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1858,
+        "ringIndex": 1858,
+        "snapDist_m": 15,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 87,
+        "orderCcw": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.462244,
+          55.824841
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1874-75",
+        "name": "родники",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1874,
+        "ringIndex": 1874,
+        "snapDist_m": 2,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 88,
+        "orderCcw": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.472522,
+          55.826665
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-1882",
+        "name": "Зелёная дуга · 1882",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 1882,
+        "ringIndex": 1882,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 89,
+        "orderCcw": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.473445,
+          55.818275
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1898-102",
+        "name": "Асерьянц-дачники",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1898,
+        "ringIndex": 1898,
+        "snapDist_m": 41,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 90,
+        "orderCcw": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.482672,
+          55.819369
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1898-103",
+        "name": "Асерьянц-стремянка",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1898,
+        "ringIndex": 1898,
+        "snapDist_m": 17,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 91,
+        "orderCcw": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.4822,
+          55.819198
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1903-101",
+        "name": "Асерьянц-рыбак",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1903,
+        "ringIndex": 1903,
+        "snapDist_m": 11,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 92,
+        "orderCcw": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.483466,
+          55.820485
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-streshnevo",
+        "name": "Покровское-Стрешнево",
+        "category": "park",
+        "description": "Парк Покровское-Стрешнево",
+        "radius_m": 120,
+        "trackIndex": 1863,
+        "ringIndex": 1920,
+        "snapDist_m": 1291,
+        "orderCw": 93,
+        "orderCcw": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.483938,
+          55.831429
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1926-74",
+        "name": "кролики",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1926,
+        "ringIndex": 1926,
+        "snapDist_m": 63,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 94,
+        "orderCcw": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.497628,
+          55.835505
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-1958",
+        "name": "Зелёная дуга · 1958",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 1958,
+        "ringIndex": 1958,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 95,
+        "orderCcw": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.51106,
+          55.846148
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-1972-91",
+        "name": "памятники",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 1972,
+        "ringIndex": 1972,
+        "snapDist_m": 74,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 96,
+        "orderCcw": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.518356,
+          55.84235
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "route-anchor-2012",
+        "name": "Зелёная дуга · 2012",
+        "category": "park",
+        "description": "Опорная точка кольца для навигации",
+        "radius_m": 90,
+        "trackIndex": 2012,
+        "ringIndex": 2012,
+        "snapDist_m": 0,
+        "mapHidden": true,
+        "routeAnchor": true,
+        "orderCw": 97,
+        "orderCcw": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.530651,
+          55.830077
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-2039-60",
+        "name": "'кладбище учёных'",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 2039,
+        "ringIndex": 2039,
+        "snapDist_m": 19,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 98,
+        "orderCcw": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.543654,
+          55.825013
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "park-timiryazev",
+        "name": "Тимирязевский парк",
+        "category": "park",
+        "description": "Лесопарк академии",
+        "radius_m": 120,
+        "trackIndex": 2045,
+        "ringIndex": 2047,
+        "snapDist_m": 207,
+        "orderCw": 99,
+        "orderCcw": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.550907,
+          55.83321
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "alert-2064-72",
+        "name": "переход Ж/Д",
+        "category": "alert",
+        "description": "Внимание на тропе",
+        "radius_m": 60,
+        "trackIndex": 2064,
+        "ringIndex": 2064,
+        "snapDist_m": 75,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 100,
+        "orderCcw": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.578566,
+          55.839711
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "note-2078-11",
+        "name": "окончание ЗКМ 163 км",
+        "category": "note",
+        "description": "Заметка с трека ЗКМ",
+        "radius_m": 60,
+        "trackIndex": 2078,
+        "ringIndex": 2078,
+        "snapDist_m": 16,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 101,
+        "orderCcw": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.587192,
+          55.842544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "alert-2078-94",
+        "name": "Ворота закрыты с 22 часов до 8 часов",
+        "category": "alert",
+        "description": "Внимание на тропе",
+        "radius_m": 60,
+        "trackIndex": 2078,
+        "ringIndex": 2078,
+        "snapDist_m": 33,
+        "mapHidden": true,
+        "listOnly": true,
+        "orderCw": 102,
+        "orderCcw": 0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.587149,
+          55.842372
+        ]
+      }
+    }
   ]
 }

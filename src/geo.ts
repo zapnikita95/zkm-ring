@@ -69,6 +69,17 @@ export function rotateToStart(pts: LatLon[], startIdx: number): LatLon[] {
   return [...pts.slice(i), ...pts.slice(0, i)]
 }
 
+/** Path along oriented ring (starts at pts[0]) until nearest vertex to `end`. */
+export function takeUntilPoint(ptsFromStart: LatLon[], end: LatLon): LatLon[] {
+  if (ptsFromStart.length < 2) return ptsFromStart.slice()
+  const endIdx = nearestIndex(ptsFromStart, end)
+  if (endIdx <= 0) return [ptsFromStart[0]]
+  if (endIdx >= ptsFromStart.length - 1 && haversineM(ptsFromStart[0], end) < 60) {
+    return ptsFromStart.slice()
+  }
+  return ptsFromStart.slice(0, endIdx + 1)
+}
+
 /** Take a prefix of oriented ring covering ~targetMeters (does not close loop). */
 export function takeDistance(pts: LatLon[], targetMeters: number): LatLon[] {
   if (pts.length === 0) return []
@@ -90,6 +101,51 @@ export function takeDistance(pts: LatLon[], targetMeters: number): LatLon[] {
     out.push(pts[i])
   }
   return out
+}
+
+export type LandmarkLike = { lat: number; lon: number; id?: string; name?: string }
+
+/**
+ * Кусок кольца ~targetMeters, но финиш — у ближайшего ориентира в окне slack
+ * (не ровно до метра). Если ориентира нет — обычный takeDistance.
+ */
+export function takeDistanceNearLandmark<T extends LandmarkLike>(
+  ptsFromStart: LatLon[],
+  targetMeters: number,
+  landmarks: T[],
+  opts?: { slackRatio?: number; minSlackM?: number; maxSlackM?: number; minFromStartM?: number },
+): { route: LatLon[]; endLandmark: T | null; meters: number } {
+  if (ptsFromStart.length === 0) {
+    return { route: [], endLandmark: null, meters: 0 }
+  }
+  const slackRatio = opts?.slackRatio ?? 0.22
+  const minSlack = opts?.minSlackM ?? 1000
+  const maxSlack = opts?.maxSlackM ?? 4000
+  const slack = Math.min(maxSlack, Math.max(minSlack, targetMeters * slackRatio))
+  const minFromStart = opts?.minFromStartM ?? Math.min(1500, targetMeters * 0.25)
+
+  const cum = cumulativeM(ptsFromStart)
+  type Cand = { lm: T; idx: number; along: number; delta: number }
+  let best: Cand | null = null
+
+  for (const lm of landmarks) {
+    const idx = nearestIndex(ptsFromStart, lm)
+    if (idx <= 0) continue
+    if (haversineM(ptsFromStart[idx], lm) > 1200) continue
+    const along = cum[idx]
+    if (along < minFromStart) continue
+    const delta = Math.abs(along - targetMeters)
+    if (delta > slack) continue
+    if (!best || delta < best.delta) best = { lm, idx, along, delta }
+  }
+
+  if (best) {
+    const route = ptsFromStart.slice(0, best.idx + 1)
+    return { route, endLandmark: best.lm, meters: pathLengthM(route) }
+  }
+
+  const route = takeDistance(ptsFromStart, targetMeters)
+  return { route, endLandmark: null, meters: pathLengthM(route) }
 }
 
 /** Evenly sample up to `n` points along path (keeps first & last). */

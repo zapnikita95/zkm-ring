@@ -1,0 +1,116 @@
+{
+  "routes": [
+    {
+      "id": "zkm-ring",
+      "title": "Зелёное кольцо Москвы",
+      "description": "Полный круг Зелёного кольца — парки, набережные и лесопарки вокруг города.",
+      "kmListed": 162.0,
+      "geojson": "data/ring.geojson",
+      "points": 2080,
+      "source": "zkm",
+      "landmarks": [],
+      "featured": true
+    },
+    {
+      "id": "mytishchi-01",
+      "title": "Мытищи 01",
+      "description": "Киоск «Домик Бабуси», лесопарк — кольцевая дорога лесопарка «Мытищи» от Тайнинской",
+      "kmListed": 35.3,
+      "geojson": "data/routes/mytishchi-01.geojson",
+      "points": 661,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "mytishchi-02",
+      "title": "Мытищи 02",
+      "description": "Православная церковь в Перловской",
+      "kmListed": 48.5,
+      "geojson": "data/routes/mytishchi-02.geojson",
+      "points": 824,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "sergposad-01",
+      "title": "Сергиев Посад 01",
+      "description": "Троицкая церковь в Ершово, микрорайон Супонево",
+      "kmListed": 22.6,
+      "geojson": "data/routes/sergposad-01.geojson",
+      "points": 218,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "sergposad-02",
+      "title": "Сергиев Посад 02",
+      "description": "Каринский подвесной мост — кольцевая дорога вокруг церкви Александра Невского в Звенигороде",
+      "kmListed": 32.0,
+      "geojson": "data/routes/sergposad-02.geojson",
+      "points": 633,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "podolsk-01",
+      "title": "Подольск 01",
+      "description": "Ворота Конного двора — вид на закат над просёлочной дорогой",
+      "kmListed": 29.2,
+      "geojson": "data/routes/podolsk-01.geojson",
+      "points": 486,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "podolsk-02",
+      "title": "Подольск 02",
+      "description": "Молоди — живописная лесная асфальтированная дорога, ведущая из Гривно",
+      "kmListed": 50.3,
+      "geojson": "data/routes/podolsk-02.geojson",
+      "points": 667,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "krasnogorsk-01",
+      "title": "Красногорск 01",
+      "description": "Беседка у излучины реки Сходни в Митино",
+      "kmListed": 38.5,
+      "geojson": "data/routes/krasnogorsk-01.geojson",
+      "points": 820,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "krasnogorsk-02",
+      "title": "Красногорск 02",
+      "description": "Кольцевая дорога «Алтай» от Чернево",
+      "kmListed": 18.2,
+      "geojson": "data/routes/krasnogorsk-02.geojson",
+      "points": 357,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "balashiha-01",
+      "title": "Балашиха 01",
+      "description": "Деревянный мост через реку — новая набережная Щёлковского шоссе из Балашихи",
+      "kmListed": 49.4,
+      "geojson": "data/routes/balashiha-01.geojson",
+      "points": 748,
+      "source": "mosregdata",
+      "landmarks": []
+    },
+    {
+      "id": "balashiha-02",
+      "title": "Балашиха 02",
+      "description": "Лебедянский пруд — усадьба Пехра-Яковлевское, вид из Новогиреево",
+      "kmListed": 74.3,
+      "geojson": "data/routes/balashiha-02.geojson",
+      "points": 726,
+      "source": "mosregdata",
+      "landmarks": []
+    }
+  ],
+  "sourceUrl": "https://mosregdata.ru/article/files-cycling-routes-mo"
+}
