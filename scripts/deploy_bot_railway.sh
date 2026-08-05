@@ -12,5 +12,5 @@ cp -R public/data bot/data
 cd bot
 railway service zm-telegram-bot
 # Force include data even if gitignored
-railway up --detach
+railway up --detach --no-gitignore
 echo "Deploy kicked. Check: railway logs -s zm-telegram-bot"
