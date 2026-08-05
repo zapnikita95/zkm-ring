@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Зелёный Маршрут</string>
+    <string name="title_activity_main">Зелёный Маршрут</string>
+    <string name="package_name">ru.zeleny.marshrut</string>
+    <string name="custom_url_scheme">ru.zeleny.marshrut</string>
+</resources>

@@ -1,7 +1,7 @@
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { LatLon } from './geo'
-import type { Park } from './data'
+import type { Landmark } from './data'
 
 const OSM_STYLE: maplibregl.StyleSpecification = {
   version: 8,
@@ -46,18 +46,14 @@ export function setRouteLine(map: maplibregl.Map, id: string, pts: LatLon[], col
     id: `${id}-line`,
     type: 'line',
     source: id,
-    paint: {
-      'line-color': color,
-      'line-width': 4,
-      'line-opacity': 0.9,
-    },
+    paint: { 'line-color': color, 'line-width': 4, 'line-opacity': 0.92 },
   })
 }
 
 export function setRingDim(map: maplibregl.Map, pts: LatLon[]): void {
-  setRouteLine(map, 'ring-full', pts, '#4a5c50')
+  setRouteLine(map, 'ring-full', pts, '#3d5c48')
   map.setPaintProperty('ring-full-line', 'line-width', 2)
-  map.setPaintProperty('ring-full-line', 'line-opacity', 0.35)
+  map.setPaintProperty('ring-full-line', 'line-opacity', 0.32)
 }
 
 export function fitToRoute(map: maplibregl.Map, pts: LatLon[], pad = 48): void {
@@ -73,20 +69,34 @@ export function upsertMarker(
   pos: LatLon,
   className: string,
 ): void {
-  const el = document.createElement('div')
-  el.className = className
   if (!markerRef.current) {
+    const el = document.createElement('div')
+    el.className = className
     markerRef.current = new maplibregl.Marker({ element: el }).setLngLat([pos.lon, pos.lat]).addTo(map)
   } else {
+    markerRef.current.getElement().className = className
     markerRef.current.setLngLat([pos.lon, pos.lat])
   }
 }
 
-export function addParkMarkers(map: maplibregl.Map, parks: Park[], earned: Set<string>): maplibregl.Marker[] {
-  return parks.map((park) => {
+export function addLandmarkMarkers(
+  map: maplibregl.Map,
+  landmarks: Landmark[],
+  earned: Set<string>,
+): maplibregl.Marker[] {
+  return landmarks.map((lm) => {
     const el = document.createElement('div')
-    el.className = earned.has(park.id) ? 'marker-park earned' : 'marker-park'
-    el.title = park.name
-    return new maplibregl.Marker({ element: el }).setLngLat([park.lon, park.lat]).addTo(map)
+    el.className = earned.has(lm.id) ? `marker-lm ${lm.category} earned` : `marker-lm ${lm.category}`
+    el.title = lm.name
+    return new maplibregl.Marker({ element: el }).setLngLat([lm.lon, lm.lat]).addTo(map)
   })
+}
+
+/** @deprecated */
+export function addParkMarkers(
+  map: maplibregl.Map,
+  parks: Landmark[],
+  earned: Set<string>,
+): maplibregl.Marker[] {
+  return addLandmarkMarkers(map, parks, earned)
 }

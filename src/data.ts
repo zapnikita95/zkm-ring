@@ -1,20 +1,12 @@
 import type { LatLon } from './geo'
 import { haversineM } from './geo'
 
-export type Park = {
+export type Landmark = {
   id: string
   name: string
+  category: 'park' | 'lake' | 'viewpoint' | 'heritage' | string
   description: string
-  reward: string
   radius_m: number
-  trackIndex: number
-  lat: number
-  lon: number
-}
-
-export type Poi = {
-  name: string
-  kind: string
   lat: number
   lon: number
 }
@@ -34,8 +26,8 @@ export async function loadRing(): Promise<LatLon[]> {
   return coords.map(([lon, lat]) => ({ lat, lon }))
 }
 
-export async function loadParks(): Promise<Park[]> {
-  const res = await fetch('/data/parks.json')
+export async function loadLandmarks(): Promise<Landmark[]> {
+  const res = await fetch('/data/landmarks.json')
   const gj = (await res.json()) as GeoJSONFeatureCollection
   return gj.features.map((f) => {
     const [lon, lat] = f.geometry.coordinates as number[]
@@ -43,40 +35,31 @@ export async function loadParks(): Promise<Park[]> {
     return {
       id: String(p.id),
       name: String(p.name),
+      category: String(p.category || 'park'),
       description: String(p.description ?? ''),
-      reward: String(p.reward ?? p.name),
       radius_m: Number(p.radius_m ?? 120),
-      trackIndex: Number(p.trackIndex ?? 0),
       lat,
       lon,
     }
   })
 }
 
-export async function loadPois(): Promise<Poi[]> {
-  const res = await fetch('/data/pois.json')
-  const gj = (await res.json()) as GeoJSONFeatureCollection
-  return gj.features.map((f) => {
-    const [lon, lat] = f.geometry.coordinates as number[]
-    return {
-      name: String(f.properties.name),
-      kind: String(f.properties.kind ?? 'other'),
-      lat,
-      lon,
-    }
-  })
+/** @deprecated alias */
+export type Park = Landmark & { reward?: string }
+
+export async function loadParks(): Promise<Landmark[]> {
+  return loadLandmarks()
 }
 
-/** Parks within ~250 m of the chosen route corridor, ordered along the route. */
-export function parksOnRoute(parks: Park[], routePts: LatLon[]): Park[] {
-  const hit: Park[] = []
-  for (const park of parks) {
+export function landmarksOnRoute(landmarks: Landmark[], routePts: LatLon[]): Landmark[] {
+  const hit: Landmark[] = []
+  for (const lm of landmarks) {
     let minD = Infinity
     for (const p of routePts) {
-      const d = haversineM(p, park)
+      const d = haversineM(p, lm)
       if (d < minD) minD = d
     }
-    if (minD <= 250) hit.push(park)
+    if (minD <= 280) hit.push(lm)
   }
   hit.sort((a, b) => {
     let ia = 0
@@ -98,4 +81,15 @@ export function parksOnRoute(parks: Park[], routePts: LatLon[]): Park[] {
     return ia - ib
   })
   return hit
+}
+
+export function parksOnRoute(landmarks: Landmark[], routePts: LatLon[]): Landmark[] {
+  return landmarksOnRoute(landmarks, routePts)
+}
+
+export const CATEGORY_LABEL: Record<string, string> = {
+  park: 'Парк',
+  lake: 'Озеро',
+  viewpoint: 'Смотровая',
+  heritage: 'История',
 }
