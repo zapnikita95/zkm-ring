@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Зелёный Маршрут — приятный кусок пути в привычном навигаторе</title>
+  <meta name="description" content="Готовый красивый трек. Старт и финиш где удобно. Дальше — в Яндекс.Картах. Для тех, кто гуляет и катается по случаю, без спортивных приложений." />
+  <meta property="og:title" content="Зелёный Маршрут" />
+  <meta property="og:description" content="Приятный кусок пути — старт и финиш где удобно — в привычном навигаторе." />
+  <meta property="og:image" content="assets/brand-icon-1024.png" />
+  <link rel="icon" href="assets/brand-icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Onest:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #07140c;
+      --bg1: #0d2216;
+      --ink: #f3f7f2;
+      --muted: #b8c9ba;
+      --leaf: #3dcf7a;
+      --leaf-deep: #1f8f4a;
+      --warm: #e8f5a8;
+      --card: rgba(255, 255, 255, 0.06);
+      --line: rgba(255, 255, 255, 0.12);
+      --radius: 22px;
+      --font-display: "Onest", sans-serif;
+      --font-body: "Manrope", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font-body);
+      background: var(--bg0);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(900px 520px at 15% -10%, rgba(61, 207, 122, 0.28), transparent 55%),
+        radial-gradient(700px 480px at 95% 15%, rgba(232, 245, 168, 0.12), transparent 50%),
+        radial-gradient(800px 600px at 50% 110%, rgba(31, 143, 74, 0.22), transparent 55%),
+        linear-gradient(165deg, #07140c 0%, #0f2618 45%, #08150e 100%);
+    }
+    .bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.14;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 4c8 10 14 18 14 26a14 14 0 11-28 0c0-8 6-16 14-26z' fill='%233dcf7a' fill-opacity='.35'/%3E%3C/svg%3E");
+      background-size: 72px 72px;
+      mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    /* —— HERO —— */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 0 56px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      animation: rise 0.8s ease both;
+    }
+    .brand img {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    }
+    .brand span {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      letter-spacing: -0.03em;
+    }
+
+    .hero h1 {
+      margin: 0 0 16px;
+      max-width: 14ch;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2.4rem, 7vw, 4.4rem);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+      animation: rise 0.9s 0.08s ease both;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--leaf);
+    }
+
+    .hero .lead {
+      margin: 0 0 28px;
+      max-width: 34rem;
+      font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+      color: var(--muted);
+      animation: rise 0.9s 0.16s ease both;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      animation: rise 0.9s 0.24s ease both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 52px;
+      padding: 0 22px;
+      border-radius: 999px;
+      border: 0;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      color: #062012;
+      background: linear-gradient(135deg, var(--warm), var(--leaf) 55%, var(--leaf-deep));
+      box-shadow: 0 10px 30px rgba(61, 207, 122, 0.35);
+    }
+    .btn-ghost {
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line);
+    }
+
+    .hero-ring {
+      position: absolute;
+      right: -8%;
+      top: 18%;
+      width: min(46vw, 420px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid rgba(61, 207, 122, 0.35);
+      box-shadow: inset 0 0 80px rgba(61, 207, 122, 0.12);
+      animation: spin 48s linear infinite, fadein 1.2s ease both;
+      pointer-events: none;
+    }
+    .hero-ring::before {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      border: 1px dashed rgba(232, 245, 168, 0.35);
+    }
+    .hero-ring::after {
+      content: "🚩";
+      position: absolute;
+      top: 8%;
+      left: 48%;
+      font-size: 1.4rem;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.4));
+    }
+
+    @media (max-width: 720px) {
+      .hero-ring { opacity: 0.35; right: -30%; top: auto; bottom: 8%; width: 70vw; }
+      .hero h1 { max-width: 12ch; }
+    }
+
+    /* —— SECTIONS —— */
+    section {
+      padding: 72px 0;
+    }
+    .section-kicker {
+      margin: 0 0 10px;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--leaf);
+    }
+    .section-title {
+      margin: 0 0 14px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      max-width: 16ch;
+    }
+    .section-text {
+      margin: 0 0 28px;
+      max-width: 36rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (max-width: 700px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px 22px 20px;
+      backdrop-filter: blur(8px);
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+    .card.yes { border-color: rgba(61, 207, 122, 0.35); }
+    .card.no { opacity: 0.78; }
+
+    .steps {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      counter-reset: step;
+    }
+    @media (max-width: 900px) {
+      .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      .steps { grid-template-columns: 1fr; }
+    }
+    .step {
+      position: relative;
+      padding: 22px 18px 18px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(61, 207, 122, 0.12), rgba(255,255,255,0.04));
+      border: 1px solid var(--line);
+      min-height: 150px;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      margin-bottom: 12px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #062012;
+      background: var(--leaf);
+    }
+    .step strong {
+      display: block;
+      margin-bottom: 6px;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+    }
+    .step span { color: var(--muted); font-size: 0.92rem; }
+
+    . pros {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    @media (max-width: 900px) {
+      .pros { grid-template-columns: 1fr; }
+    }
+    .pro {
+      padding: 24px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--line);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .pro:hover {
+      border-color: rgba(61, 207, 122, 0.45);
+      transform: translateY(-3px);
+    }
+    .pro .ico {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .pro h3 {
+      margin: 0 0 8px;
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+    .pro p { margin: 0; color: var(--muted); }
+
+    .compare-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.25);
+    }
+    table.compare {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+      font-size: 0.92rem;
+    }
+    table.compare th,
+    table.compare td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    table.compare th {
+      font-family: var(--font-display);
+      font-weight: 700;
+      background: rgba(61, 207, 122, 0.1);
+    }
+    table.compare th:nth-child(2) {
+      color: var(--leaf);
+      background: rgba(61, 207, 122, 0.18);
+    }
+    table.compare td:nth-child(2) {
+      background: rgba(61, 207, 122, 0.07);
+      font-weight: 650;
+    }
+    table.compare tr:last-child td { border-bottom: 0; }
+
+    .banner {
+      margin-top: 28px;
+      padding: 22px 24px;
+      border-radius: var(--radius);
+      background: linear-gradient(120deg, rgba(61, 207, 122, 0.2), rgba(232, 245, 168, 0.08));
+      border: 1px solid rgba(61, 207, 122, 0.35);
+    }
+    .banner strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      margin-bottom: 6px;
+    }
+    .banner p { margin: 0; color: var(--muted); }
+
+    .final {
+      text-align: center;
+      padding: 88px 0 100px;
+    }
+    .final h2 {
+      margin: 0 0 14px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+    }
+    .final p {
+      margin: 0 auto 28px;
+      max-width: 28rem;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    .final .cta-row { justify-content: center; }
+
+    footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    footer .wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    footer a { color: var(--leaf); text-underline-offset: 2px; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes fadein {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="brand">
+        <img src="assets/brand-icon-1024.png" width="64" height="64" alt="" />
+        <span>Зелёный Маршрут</span>
+      </div>
+      <h1>Приятный кусок пути. <em>Не спортзал.</em></h1>
+      <p class="lead">
+        Готовый красивый трек. Старт и финиш — где вам удобно.
+        Дальше ведём в Яндекс.Картах — в навигаторе, которым вы уже пользуетесь.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#how">Как это работает</a>
+        <a class="btn btn-ghost" href="#why">Почему не Komoot</a>
+      </div>
+    </div>
+    <div class="hero-ring" aria-hidden="true"></div>
+  </header>
+
+  <section id="who">
+    <div class="wrap">
+      <p class="section-kicker">Для кого</p>
+      <h2 class="section-title">Не для профи. Для «по случаю».</h2>
+      <p class="section-text">
+        Если у вас нет специальных приложений для прогулок и велокатаний —
+        и вы просто хотите хорошо провести пару часов в городе или рядом — вы наш человек.
+      </p>
+      <div class="grid-2">
+        <article class="card yes">
+          <h3>💚 Это вы</h3>
+          <p>Гуляете и катаетесь иногда. Привыкли к Яндексу. Не хотите учить «ещё одно спортивное приложение». Хотите красивую готовую линию и кусок «отсюда — досюда».</p>
+        </article>
+        <article class="card no">
+          <h3>🌑 Это не про нас</h3>
+          <p>Тренировочные планы, сегменты на рекорд, ультра и соцсеть километров. Для этого уже есть Strava и компания — мы про другое.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <p class="section-kicker">Сценарий</p>
+      <h2 class="section-title">Четыре шага — и вы на линии</h2>
+      <p class="section-text">Без построения «с нуля». Без спортивного жаргона. Только приятный маршрут.</p>
+      <div class="steps">
+        <div class="step">
+          <strong>Выбрать трек</strong>
+          <span>Зелёное кольцо Москвы или маршруты Подмосковья — из карусели.</span>
+        </div>
+        <div class="step">
+          <strong>Старт и финиш</strong>
+          <span>Там, где удобно вам: у дома, у метро, на N километров или на время.</span>
+        </div>
+        <div class="step">
+          <strong>Получить кусок</strong>
+          <span>Километры, время, точки на карте — понятный отрезок, не весь мир.</span>
+        </div>
+        <div class="step">
+          <strong>Идти как обычно</strong>
+          <span>Открываем Яндекс.Карты кусками — или лёгкую навигацию в приложении.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="why">
+    <div class="wrap">
+      <p class="section-kicker">Сильные стороны</p>
+      <h2 class="section-title">Мы не строим дороги. Мы отдаём красоту.</h2>
+      <p class="section-text">Конкурентное преимущество — не «ещё одна карта», а привычный способ ехать по уже приятной линии.</p>
+      <div class="pros">
+        <article class="pro">
+          <div class="ico">🚩</div>
+          <h3>Старт где стоите</h3>
+          <p>Не тащите себя к «нулевому километру» чужого GPX. Встали у кольца — пошли свой кусок.</p>
+        </article>
+        <article class="pro">
+          <div class="ico">🗺️</div>
+          <h3>Привычный навигатор</h3>
+          <p>Маршрут собираем мы. Ведёте себя в Яндексе — без курса «как пользоваться Komoot».</p>
+        </article>
+        <article class="pro">
+          <div class="ico">🌿</div>
+          <h3>Готовые линии</h3>
+          <p>ЗКМ и треки Подмосковья уже в карусели. Не пустая карта «нарисуй сам».</p>
+        </article>
+        <article class="pro">
+          <div class="ico">☕</div>
+          <h3>Городской casual</h3>
+          <p>Выходной и вечер после работы. Не «сезон в Альпах» и не подготовка к гонке.</p>
+        </article>
+        <article class="pro">
+          <div class="ico">✂️</div>
+          <h3>Кусок, не эпос</h3>
+          <p>8 км после работы важнее, чем загрузить весь трек на 70. Режем под ваш день.</p>
+        </article>
+        <article class="pro">
+          <div class="ico">🔇</div>
+          <h3>Без спортивного шума</h3>
+          <p>Нет обязательной ленты, пульса и рейтингов. Можно просто быть на воздухе.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="compare">
+    <div class="wrap">
+      <p class="section-kicker">Честное сравнение</p>
+      <h2 class="section-title">Где наша щель</h2>
+      <p class="section-text">Между «просто Яндекс по улицам» и «тяжёлыми outdoor-приложениями».</p>
+      <div class="compare-wrap">
+        <table class="compare">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Зелёный Маршрут</th>
+              <th>Яндекс / 2ГИС сами</th>
+              <th>Komoot / Outdooractive</th>
+              <th>Strava</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Сценарий</td>
+              <td>Приятный кусок готового трека</td>
+              <td>А → Б по дорогам</td>
+              <td>Подготовка outdoor-маршрута</td>
+              <td>Тренировка и соцсеть</td>
+            </tr>
+            <tr>
+              <td>Для кого</td>
+              <td>Casual, без спец. приложений</td>
+              <td>Все</td>
+              <td>Активный outdoor</td>
+              <td>Атлеты</td>
+            </tr>
+            <tr>
+              <td>Старт «где стою» на красивой линии</td>
+              <td>Ядро продукта</td>
+              <td>Линия сама не «зелёная»</td>
+              <td>Надо уметь</td>
+              <td>Не про это</td>
+            </tr>
+            <tr>
+              <td>Привычный РФ-навигатор</td>
+              <td>Яндекс кусками</td>
+              <td>Это и есть навигатор</td>
+              <td>Свой UI / экспорт</td>
+              <td>Свой UI</td>
+            </tr>
+            <tr>
+              <td>Учить новый «спортивный мир»</td>
+              <td>Не нужно</td>
+              <td>Не нужно</td>
+              <td>Часто нужно</td>
+              <td>Часто нужно</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="banner">
+        <strong>Одной фразой</strong>
+        <p>Приятный кусок готового маршрута — старт и финиш где удобно — ведём в привычном навигаторе.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="start">
+    <div class="wrap">
+      <h2>Не ещё один трекер.<br />Просто хорошо провести время.</h2>
+      <p>iOS · Android · готовые треки Москвы и Подмосковья. Код открыт — продукт для людей, а не для «профи с GPX-редактором».</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/zapnikita95/zkm-ring">Репозиторий на GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/zapnikita95/zkm-ring/blob/main/docs/PRODUCT.md">Канон продукта</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div>© Зелёный Маршрут · для прогулок по случаю</div>
+      <div>
+        <a href="https://github.com/zapnikita95/zkm-ring">GitHub</a>
+        ·
+        <a href="./PRODUCT.md">PRODUCT.md</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
