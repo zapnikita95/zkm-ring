@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -16,8 +16,14 @@ import {
 import { pointsForYandex, yandexMapsUrl, yandexNaviUrl } from './yandex.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const DATA =
-  process.env.DATA_DIR || join(__dirname, '../../public/data')
+function resolveDataDir() {
+  if (process.env.DATA_DIR) return process.env.DATA_DIR
+  const bundled = join(__dirname, '../data')
+  const monorepo = join(__dirname, '../../public/data')
+  if (existsSync(join(bundled, 'ring.geojson'))) return bundled
+  return monorepo
+}
+const DATA = resolveDataDir()
 
 function loadJson(rel) {
   return JSON.parse(readFileSync(join(DATA, rel), 'utf8'))
