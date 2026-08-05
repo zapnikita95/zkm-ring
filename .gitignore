@@ -15,6 +15,11 @@ dist-ssr
 *.apk
 *.ipa
 secrets/
+.env
+.env.*
+!.env.example
+bot/.env
+bot/node_modules/
 
 # Android build
 android/.gradle/
