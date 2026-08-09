@@ -13,6 +13,7 @@ const ALLOWED_EVENTS = new Set([
   'track_select',
   'build_route',
   'open_yandex_maps',
+  'open_2gis_maps',
   'save_plan',
   'bot_start',
   'bot_track_select',

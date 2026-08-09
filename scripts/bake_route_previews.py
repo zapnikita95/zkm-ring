@@ -233,10 +233,7 @@ def main() -> None:
                 "split_label": "Конец благоустройства ≈21 км",
             }
             title = f"{r.get('title', rid)} · ≈44 км (благоустр. ~21 км)"
-        if rid == "zkm-ring":
-            alt_path = PUBLIC / "alternatives" / "koptevo-hook.geojson"
-            if alt_path.exists():
-                split_kw["dashed"] = load_line(alt_path)
+        if rid in ("zkm-ring", "zkm-rutrail"):
             mck_path = PUBLIC / "mck-stations.json"
             mcd_path = PUBLIC / "mcd-stations.json"
 
@@ -274,7 +271,7 @@ def main() -> None:
                     and s.get("lon") is not None
                     and near_ring(float(s["lat"]), float(s["lon"]), 2500)
                 ]
-                print(f"  zkm overlay: dashed={bool(split_kw.get('dashed'))} mck={len(split_kw.get('mck') or [])} mcd={len(split_kw.get('mcd') or [])}")
+                print(f"  {rid} overlay: mck={len(split_kw.get('mck') or [])} mcd={len(split_kw.get('mcd') or [])}")
         draw(coords, title, out, **split_kw)
         bot_out = BOT / "previews"
         bot_out.mkdir(parents=True, exist_ok=True)

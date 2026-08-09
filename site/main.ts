@@ -21,6 +21,7 @@ import {
   type SvgRouteHandle,
 } from '../src/map'
 import { yandexApproachUrl, yandexMapsLegs } from './yandex'
+import { twoGisApproachUrl, twoGisMapsLegs } from './twogis'
 import { trackClient, trackPageView, ymSetUserId } from './analytics'
 import { formatMckDist, loadMckStations, stationsNearStart, type MckStation } from './mck'
 import {
@@ -31,7 +32,7 @@ import {
   stationsAlpha,
   type McdStation,
 } from './mcd'
-import { isInsideMkad, stationsNearTrack } from './mkad'
+import { isInsideMkad, minDistToTrackM, stationsNearTrack, GREEN_RING_RAIL_NEAR_M } from './mkad'
 import catalogBundled from '../public/data/routes-catalog.json'
 
 type Mode = 'bike' | 'walk'
@@ -141,8 +142,8 @@ const state = {
   lengthPicked: false,
   /** Свёрнутая карта — больше места под панель */
   mapCompact: false,
-  /** Официальное кольцо без крюка Коптево; track может включать альтернативу */
-  useKoptevoAlt: false,
+  /** Куда открывать участки / доезд на шаге «Карты» */
+  mapsProvider: 'yandex' as 'yandex' | '2gis',
 }
 
 let map: maplibregl.Map | null = null
@@ -152,11 +153,6 @@ let endMarker: maplibregl.Marker | null = null
 let geoMarker: maplibregl.Marker | null = null
 let mapClickBound = false
 const trackCache = new Map<string, LatLon[]>()
-/** Официальный трек ZKM без опционального крюка Коптево */
-let officialTrack: LatLon[] = []
-/** Пунктирная альтернатива «крюк к МЦК Коптево» */
-let koptevoAlt: LatLon[] = []
-let koptevoAltKm = 0
 let landmarks: LandmarkLite[] = []
 let trailPois: TrailPoi[] = []
 const GUEST_KEY = 'zm-guest-token'
@@ -259,11 +255,15 @@ function formatKmListed(km: number) {
 }
 
 function legendTrackTitle(meta: { id?: string; title: string; kmListed: number }) {
-  const km = formatKmListed(meta.kmListed)
-  if (meta.id === 'zkm-ring' || (/зелён/i.test(meta.title) && /кольц/i.test(meta.title))) {
-    return `Зелёное Кольцо ${km}`
-  }
-  return `${meta.title} ${km}`
+  return `${meta.title} ${formatKmListed(meta.kmListed)}`
+}
+
+function trackDurationLabel(kmListed: number, mode: Mode = state.mode) {
+  return formatDuration(minutesFromMeters(Math.max(0, kmListed) * 1000, mode))
+}
+
+function isGreenRingRouteId(id: string | null | undefined): boolean {
+  return id === 'zkm-ring' || id === 'zkm-rutrail'
 }
 
 async function fetchJson<T>(path: string, attempts = 4): Promise<T> {
@@ -316,9 +316,11 @@ function currentCity(): CityMeta {
 
 function routesForCity(cityId = state.cityId): RouteMeta[] {
   const list = state.catalog.filter((r) => (r.cityId || 'msk') === cityId)
+  const rank = (id: string) => (id === 'zkm-ring' ? 0 : id === 'zkm-rutrail' ? 1 : 2)
   return list.slice().sort((a, b) => {
-    if (a.id === 'zkm-ring') return -1
-    if (b.id === 'zkm-ring') return 1
+    const ra = rank(a.id)
+    const rb = rank(b.id)
+    if (ra !== rb) return ra - rb
     if (a.featured && !b.featured) return -1
     if (!a.featured && b.featured) return 1
     return (a.title || '').localeCompare(b.title || '', 'ru')
@@ -592,9 +594,6 @@ async function applyPlanPayload(payload: any) {
   if (!loaded) {
     const fallback = embeddedTrack.length >= 2 ? embeddedTrack : seg
     state.routeId = routeId || 'shared:plan'
-    officialTrack = []
-    koptevoAlt = []
-    state.useKoptevoAlt = false
     state.track = fallback
     state.points = []
   }
@@ -1600,7 +1599,7 @@ function initMap() {
     // если уже выбран старт маршрута — сразу предложить доехать от этой МЦК
     if (state.start && state.step === 'maps') {
       window.open(
-        yandexApproachUrl(
+        approachUrlForProvider(
           { lat: dot.lat, lon: dot.lon },
           { lat: state.start.lat, lon: state.start.lon },
         ),
@@ -1675,79 +1674,6 @@ function setMarkers(_start: LatLon | null, _end: LatLon | null) {
   startMarker = endMarker = null
 }
 
-function nearestTrackIndex(track: LatLon[], p: LatLon): number {
-  let best = 0
-  let bestD = Infinity
-  for (let i = 0; i < track.length; i++) {
-    const d = haversineM(track[i], p)
-    if (d < bestD) {
-      bestD = d
-      best = i
-    }
-  }
-  return best
-}
-
-/** Вшить крюк Коптево в официальный трек между ближайшими концами. */
-function spliceKoptevoAlt(base: LatLon[], hook: LatLon[]): LatLon[] {
-  if (base.length < 2 || hook.length < 2) return base.slice()
-  let i0 = nearestTrackIndex(base, hook[0])
-  let i1 = nearestTrackIndex(base, hook[hook.length - 1])
-  let use = hook
-  if (i0 > i1) {
-    const t = i0
-    i0 = i1
-    i1 = t
-    use = hook.slice().reverse()
-  }
-  if (i1 - i0 < 1) return base.slice()
-  return base.slice(0, i0).concat(use, base.slice(i1 + 1))
-}
-
-function applyOfficialOrAltTrack() {
-  if (officialTrack.length < 2) return
-  state.track =
-    state.useKoptevoAlt && koptevoAlt.length >= 2
-      ? spliceKoptevoAlt(officialTrack, koptevoAlt)
-      : officialTrack.slice()
-  state.points = listPointsOnTrack(state.track)
-  if (state.start) state.start = snapToTrack(state.start, state.start.name)
-  if (state.end) state.end = snapToTrack(state.end, state.end.name)
-  syncSegment()
-}
-
-function toggleKoptevoAlt() {
-  if (koptevoAlt.length < 2 || officialTrack.length < 2) return
-  state.useKoptevoAlt = !state.useKoptevoAlt
-  applyOfficialOrAltTrack()
-  paintMap()
-  render()
-  toast(
-    state.useKoptevoAlt
-      ? 'Альтернатива: крюк к МЦК Коптево включён'
-      : 'Официальное Зелёное кольцо (без Коптево)',
-  )
-  schedulePersist()
-}
-
-async function loadKoptevoAlternative() {
-  koptevoAlt = []
-  koptevoAltKm = 0
-  if (state.routeId !== 'zkm-ring') return
-  try {
-    const gj = await fetchJson<{
-      features?: Array<{ geometry?: { coordinates?: number[][] }; properties?: Record<string, unknown> }>
-    }>('/data/alternatives/koptevo-hook.geojson')
-    const coords = gj.features?.[0]?.geometry?.coordinates || []
-    koptevoAlt = coords
-      .map(([lon, lat]) => ({ lat: Number(lat), lon: Number(lon) }))
-      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon))
-    koptevoAltKm = Number(gj.features?.[0]?.properties?.km) || pathLengthM(koptevoAlt) / 1000
-  } catch (e) {
-    console.warn('[site] koptevo alt', e)
-  }
-}
-
 function paintMap() {
   if (!map || !svgRoutes) {
     updateLegend()
@@ -1762,37 +1688,6 @@ function paintMap() {
       width: hasSeg ? 5 : 7,
       id: 'main',
     })
-  }
-  // Крюк Коптево: пунктир = альтернатива; тап вкл/выкл. Когда вкл — пунктир на официальном спрямлении.
-  if (koptevoAlt.length >= 2) {
-    if (!state.useKoptevoAlt) {
-      routes.push({
-        pts: koptevoAlt,
-        color: '#c4782a',
-        width: 5,
-        dash: true,
-        id: 'koptevo-hook',
-        onClick: () => toggleKoptevoAlt(),
-      })
-    } else if (officialTrack.length >= 2) {
-      let i0 = nearestTrackIndex(officialTrack, koptevoAlt[0])
-      let i1 = nearestTrackIndex(officialTrack, koptevoAlt[koptevoAlt.length - 1])
-      if (i0 > i1) {
-        const t = i0
-        i0 = i1
-        i1 = t
-      }
-      if (i1 - i0 >= 2) {
-        routes.push({
-          pts: officialTrack.slice(i0, i1 + 1),
-          color: '#6b8f7a',
-          width: 4,
-          dash: true,
-          id: 'koptevo-official-bypass',
-          onClick: () => toggleKoptevoAlt(),
-        })
-      }
-    }
   }
   if (hasSeg) routes.push({ pts: state.segment, color: '#1f8f4a', width: 8, id: 'segment' })
 
@@ -1890,19 +1785,23 @@ let mcdLoadPromise: Promise<McdStation[]> | null = null
 function isMoscowRailContext(): boolean {
   if (state.cityId === 'msk') return true
   const meta = state.catalog.find((r) => r.id === state.routeId)
-  return (meta?.cityId || 'msk') === 'msk' || state.routeId === 'zkm-ring'
+  return (meta?.cityId || 'msk') === 'msk' || isGreenRingRouteId(state.routeId)
 }
 
 function isGreenRingRoute(): boolean {
-  return state.routeId === 'zkm-ring'
+  return isGreenRingRouteId(state.routeId)
 }
 
-/** Станции для карты и пикера: ЗКМ — внутри МКАД; остальные — ≤5 км от трека. */
+/** Станции для карты и пикера: ЗКМ — внутри МКАД или ≤5 км от трека; остальные — ≤5 км от трека. */
 function filterRailStationsForRoute<T extends LatLon>(all: T[] | null | undefined): T[] {
   if (!all?.length || !isMoscowRailContext()) return []
   if (state.track.length < 2) return []
-  if (isGreenRingRoute()) return all.filter((s) => isInsideMkad(s))
-  return stationsNearTrack(all, state.track, 5000)
+  if (isGreenRingRoute()) {
+    return all.filter(
+      (s) => isInsideMkad(s) || minDistToTrackM(s, state.track) <= GREEN_RING_RAIL_NEAR_M,
+    )
+  }
+  return stationsNearTrack(all, state.track, GREEN_RING_RAIL_NEAR_M)
 }
 
 function showMckOnMap(): boolean {
@@ -2030,7 +1929,6 @@ type PlannerSnap = {
   start: PointOpt | null
   end: PointOpt | null
   segment: LatLon[]
-  useKoptevoAlt?: boolean
 }
 
 function packPoint(p: PointOpt | null): string {
@@ -2081,7 +1979,6 @@ function buildPlannerSnap(): PlannerSnap {
     start: state.start,
     end: state.end,
     segment: downsampleForSnap(state.segment, 400),
-    useKoptevoAlt: state.useKoptevoAlt,
   }
 }
 
@@ -2189,22 +2086,13 @@ function schedulePersist(opts?: { push?: boolean }) {
   persistTimer = setTimeout(() => persistPlannerState(opts), 60)
 }
 
-async function hydrateTrackOnly(id: string, opts?: { keepKoptevoAlt?: boolean }) {
-  // геометрия кольца могла обновиться на проде — не держим вечный кэш ZKM
-  if (id === 'zkm-ring') trackCache.delete(id)
+async function hydrateTrackOnly(id: string) {
+  // геометрия колец могла обновиться на проде — не держим вечный кэш
+  if (isGreenRingRouteId(id)) trackCache.delete(id)
   const pts = await loadTrack(id)
   state.routeId = id
-  officialTrack = id === 'zkm-ring' ? pts.slice() : []
-  if (!(opts?.keepKoptevoAlt && id === 'zkm-ring')) state.useKoptevoAlt = false
-  await loadKoptevoAlternative()
-  if (id === 'zkm-ring') {
-    applyOfficialOrAltTrack()
-  } else {
-    koptevoAlt = []
-    state.useKoptevoAlt = false
-    state.track = pts
-    state.points = listPointsOnTrack(pts)
-  }
+  state.track = pts
+  state.points = listPointsOnTrack(pts)
 }
 
 async function restorePlannerFromSnap(snap: Partial<PlannerSnap> & { routeId?: string }) {
@@ -2216,11 +2104,7 @@ async function restorePlannerFromSnap(snap: Partial<PlannerSnap> & { routeId?: s
   const routeId = snap.routeId || ''
   if (routeId) {
     try {
-      await hydrateTrackOnly(routeId, { keepKoptevoAlt: Boolean(snap.useKoptevoAlt) })
-      if (snap.useKoptevoAlt && routeId === 'zkm-ring' && koptevoAlt.length >= 2) {
-        state.useKoptevoAlt = true
-        applyOfficialOrAltTrack()
-      }
+      await hydrateTrackOnly(routeId)
     } catch (e) {
       console.warn('[site] restore track', e)
       // saved: мог быть недоступен — всё равно восстановим сегмент из snap
@@ -2360,12 +2244,14 @@ function viewTrack() {
   const cards = cityRoutes
     .map((r) => {
       const active = r.id === state.routeId ? 'active' : ''
-      const star = r.featured || r.id === 'zkm-ring' ? '⭐ ' : ''
-      const showDiff = r.difficulty && !(r.featured || r.id === 'zkm-ring')
+      const star = r.featured || isGreenRingRouteId(r.id) ? '⭐ ' : ''
+      const showDiff = r.difficulty && !(r.featured || isGreenRingRouteId(r.id))
       const diff = showDiff ? `<span class="diff-tag">${diffRu[r.difficulty] || r.difficulty}</span>` : ''
+      const dur = trackDurationLabel(r.kmListed, state.mode)
+      const modeHint = state.mode === 'walk' ? 'пешком' : 'вело'
       return `<button type="button" class="track-btn ${active}" data-pick-track="${r.id}">
         <span class="t">${star}${r.title}${diff}</span>
-        <span class="m">≈ ${r.kmListed} км</span>
+        <span class="m">≈ ${r.kmListed} км · ≈ ${dur} ${modeHint}</span>
         ${r.description ? `<span class="d">${r.description}</span>` : ''}
       </button>`
     })
@@ -2766,25 +2652,41 @@ function viewConfirm() {
   </div>`
 }
 
+function mapsLegsForProvider() {
+  const seg = state.segment
+  if (seg.length < 2) return [] as { index: number; total: number; meters: number; url: string }[]
+  return state.mapsProvider === '2gis'
+    ? twoGisMapsLegs(seg, state.mode)
+    : yandexMapsLegs(seg, state.mode)
+}
+
+function approachUrlForProvider(from: LatLon, to: LatLon): string {
+  return state.mapsProvider === '2gis' ? twoGisApproachUrl(from, to) : yandexApproachUrl(from, to)
+}
+
 function viewMaps() {
   applyCustomIfAny()
   syncSegment()
   const seg = state.segment
   const m = pathLengthM(seg)
   const meta = state.catalog.find((r) => r.id === state.routeId) || savedMeta.get(state.routeId)
-  const legs = seg.length >= 2 ? yandexMapsLegs(seg, state.mode) : []
-  const legsHtml =
-    legs.length <= 1
-      ? legs.length === 1
-        ? `<a class="btn js-open-yandex" href="${legs[0].url}" target="_blank" rel="noopener">🗺 Яндекс.Карты</a>`
-        : `<a class="btn" href="#" aria-disabled="true">🗺 Яндекс.Карты</a>`
-      : `<p class="lead tiny yandex-legs-hint">Откройте участки <b>по порядку</b> — так Яндекс держит тропу через парки.</p>
+  const provider = state.mapsProvider
+  const providerLabel = provider === '2gis' ? '2ГИС' : 'Яндекс.Карты'
+  const legs = mapsLegsForProvider()
+  const openCls = provider === '2gis' ? 'js-open-2gis' : 'js-open-yandex'
+  let legsHtml = `<a class="btn" href="#" aria-disabled="true">🗺 ${providerLabel}</a>`
+  if (legs.length === 1) {
+    legsHtml = `<a class="btn ${openCls}" href="${legs[0].url}" target="_blank" rel="noopener">🗺 ${providerLabel}</a>`
+  } else if (legs.length > 1) {
+    legsHtml = `<p class="lead tiny yandex-legs-hint">Откройте участки <b>по порядку</b> — так ${
+      provider === '2gis' ? '2ГИС' : 'Яндекс'
+    } лучше держит тропу.</p>
         <ol class="yandex-legs">
           ${legs
             .map(
               (leg) =>
                 `<li>
-                  <a class="btn ${leg.index === 0 ? '' : 'secondary'} js-open-yandex" href="${leg.url}" target="_blank" rel="noopener">
+                  <a class="btn ${leg.index === 0 ? '' : 'secondary'} ${openCls}" href="${leg.url}" target="_blank" rel="noopener">
                     🗺 Участок ${leg.index + 1} из ${leg.total}
                     <span class="yandex-leg-meta">${formatKm(leg.meters)}</span>
                   </a>
@@ -2792,6 +2694,7 @@ function viewMaps() {
             )
             .join('')}
         </ol>`
+  }
   const showMckApproach = showMckOnMap() && !!state.start
   return `<div class="card card-fill">
     <div class="panel-scroll">
@@ -2804,7 +2707,15 @@ function viewMaps() {
       </div>
       ${shareSaveRow()}
       <h2>Открыть в навигаторе</h2>
-      <div class="nav-stack">
+      <div class="seg-tabs sm" id="maps-provider-seg" role="tablist" aria-label="Навигатор">
+        <button type="button" data-maps-provider="yandex" class="${
+          provider === 'yandex' ? 'active' : ''
+        }">Яндекс</button>
+        <button type="button" data-maps-provider="2gis" class="${
+          provider === '2gis' ? 'active' : ''
+        }">2ГИС</button>
+      </div>
+      <div class="nav-stack" style="margin-top:10px">
         <button type="button" class="btn secondary" id="btn-approach-start" ${
           state.start ? '' : 'disabled'
         }>🚗 Доехать до старта</button>
@@ -2812,7 +2723,9 @@ function viewMaps() {
       </div>
       ${
         showMckApproach
-          ? `<p class="lead tiny" style="margin-top:8px">До старта можно от ближайшей МЦК или от вашей геопозиции.</p>`
+          ? `<p class="lead tiny" style="margin-top:8px">До старта — от МЦК/МЦД или геопозиции (откроется в ${
+              provider === '2gis' ? '2ГИС' : 'Яндексе'
+            }).</p>`
           : ''
       }
     </div>
@@ -2842,7 +2755,9 @@ function showApproachChooser() {
   wrap.innerHTML = `<div class="auth-card">
     <button type="button" class="modal-x" id="approach-close" aria-label="Закрыть">✕</button>
     <h3>Доехать до старта</h3>
-    <p class="lead tiny">Откуда построить маршрут в Яндекс.Картах?</p>
+    <p class="lead tiny">Откуда построить маршрут в ${
+      state.mapsProvider === '2gis' ? '2ГИС' : 'Яндекс.Картах'
+    }?</p>
     <div class="nav-stack" style="margin-top:12px">
       ${railBtns}
       <button type="button" class="btn secondary" id="approach-from-geo">📍 Текущее положение</button>
@@ -2886,7 +2801,11 @@ async function openApproachFromGeo() {
     badge: 'гео',
   }
   paintMap()
-  window.open(yandexApproachUrl(geo, { lat: state.start.lat, lon: state.start.lon }), '_blank', 'noopener')
+  window.open(
+    approachUrlForProvider(geo, { lat: state.start.lat, lon: state.start.lon }),
+    '_blank',
+    'noopener',
+  )
 }
 
 async function showApproachStationPicker(kind: 'mck' | 'mcd' | 'both') {
@@ -2975,7 +2894,10 @@ async function showApproachStationPicker(kind: 'mck' | 'mcd' | 'both') {
       }
       paintMap()
       window.open(
-        yandexApproachUrl({ lat: st.lat, lon: st.lon }, { lat: state.start.lat, lon: state.start.lon }),
+        approachUrlForProvider(
+          { lat: st.lat, lon: st.lon },
+          { lat: state.start.lat, lon: state.start.lon },
+        ),
         '_blank',
         'noopener',
       )
@@ -3124,6 +3046,18 @@ function wirePanel() {
   })
   document.querySelectorAll('.js-open-yandex').forEach((a) => {
     a.addEventListener('click', () => trackClient('open_yandex_maps', { routeId: state.routeId }))
+  })
+  document.querySelectorAll('.js-open-2gis').forEach((a) => {
+    a.addEventListener('click', () => trackClient('open_2gis_maps', { routeId: state.routeId }))
+  })
+  document.querySelectorAll('#maps-provider-seg [data-maps-provider]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const v = (btn as HTMLElement).dataset.mapsProvider
+      if (v !== 'yandex' && v !== '2gis') return
+      if (state.mapsProvider === v) return
+      state.mapsProvider = v
+      render()
+    })
   })
   $('#btn-to-start')?.addEventListener('click', () => {
     if (!state.routeId) return

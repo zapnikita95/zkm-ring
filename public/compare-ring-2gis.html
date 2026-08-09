@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Наше кольцо vs 2ГИС — наложение</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+    />
+    <style>
+      :root {
+        --bg: #0f1410;
+        --panel: rgba(18, 28, 20, 0.92);
+        --text: #e8f0e6;
+        --muted: #a8b8a4;
+        --ours: #3dcf6a;
+        --tgis: #3b82f6;
+        --pin: #f59e0b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      #map {
+        position: absolute;
+        inset: 0;
+      }
+      .panel {
+        position: absolute;
+        z-index: 2;
+        left: 12px;
+        top: 12px;
+        right: 12px;
+        max-width: 420px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+      .lead {
+        margin: 0 0 10px;
+        font-size: 0.85rem;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        margin: 0 0 10px;
+        font-size: 0.82rem;
+      }
+      .swatch {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .swatch i {
+        width: 22px;
+        height: 4px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+      .swatch.ours i {
+        background: var(--ours);
+      }
+      .swatch.tgis i {
+        background: var(--tgis);
+      }
+      .swatch.pin i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--pin);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        font-size: 0.8rem;
+      }
+      .stat {
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .stat b {
+        display: block;
+        font-size: 1.05rem;
+        margin-top: 2px;
+      }
+      .stat.ours b {
+        color: var(--ours);
+      }
+      .stat.tgis b {
+        color: var(--tgis);
+      }
+      .toggles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .toggles label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
+      }
+      .note {
+        margin: 10px 0 0;
+        font-size: 0.75rem;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .note a {
+        color: #93c5fd;
+      }
+      .err {
+        color: #fca5a5;
+        font-size: 0.85rem;
+      }
+      @media (max-width: 520px) {
+        .panel {
+          max-width: none;
+        }
+        .stats {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <aside class="panel">
+      <h1>Наше кольцо × линия 2ГИС</h1>
+      <p class="lead">
+        Зелёный — трек из приложения (<code>ring.geojson</code>). Синий — геометрия карточки
+        «Веломаршрут Зелёное Кольцо» в 2ГИС (~130&nbsp;км). Общий рисунок похож, по точкам —
+        разные линии.
+      </p>
+      <div class="legend">
+        <span class="swatch ours"><i></i> наше</span>
+        <span class="swatch tgis"><i></i> 2ГИС</span>
+        <span class="swatch pin"><i></i> точка 55.817311, 37.485154</span>
+      </div>
+      <div class="stats" id="stats">
+        <div class="stat ours">наше <b id="km-ours">…</b></div>
+        <div class="stat tgis">2ГИС <b id="km-2gis">…</b></div>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="tog-ours" checked /> наше</label>
+        <label><input type="checkbox" id="tog-2gis" checked /> 2ГИС</label>
+        <label><input type="checkbox" id="tog-pin" checked /> точка</label>
+      </div>
+      <p class="note">
+        Источник 2ГИС:
+        <a href="https://2gis.ru/moscow/geo/70030077065188560" target="_blank" rel="noopener"
+          >карточка маршрута</a
+        >
+        · точка на нашей линии (0&nbsp;м), до линии 2ГИС ~5&nbsp;м · длины не совпадают.
+      </p>
+      <p class="err" id="err" hidden></p>
+    </aside>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+      const PIN = { lat: 55.817311, lon: 37.485154 }
+
+      function havM(a, b) {
+        const R = 6371000
+        const toR = (d) => (d * Math.PI) / 180
+        const lat1 = toR(a[1])
+        const lon1 = toR(a[0])
+        const lat2 = toR(b[1])
+        const lon2 = toR(b[0])
+        const dlat = lat2 - lat1
+        const dlon = lon2 - lon1
+        const h =
+          Math.sin(dlat / 2) ** 2 +
+          Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlon / 2) ** 2
+        return 2 * R * Math.asin(Math.sqrt(h))
+      }
+
+      function lengthKm(geom) {
+        let m = 0
+        const walk = (coords) => {
+          for (let i = 1; i < coords.length; i++) m += havM(coords[i - 1], coords[i])
+        }
+        if (!geom) return 0
+        if (geom.type === 'LineString') walk(geom.coordinates)
+        else if (geom.type === 'MultiLineString') geom.coordinates.forEach(walk)
+        return m / 1000
+      }
+
+      function firstGeom(fc) {
+        const f = fc.features && fc.features[0]
+        return f && f.geometry
+      }
+
+      const map = new maplibregl.Map({
+        container: 'map',
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: 'raster',
+              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+              tileSize: 256,
+              attribution: '© OpenStreetMap',
+            },
+          },
+          layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+        },
+        center: [37.62, 55.75],
+        zoom: 9.4,
+      })
+      map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'bottom-right')
+
+      function showErr(msg) {
+        const el = document.getElementById('err')
+        el.hidden = false
+        el.textContent = msg
+      }
+
+      map.on('load', async () => {
+        try {
+          const [oursRes, tgisRes] = await Promise.all([
+            fetch('/data/ring.geojson'),
+            fetch('/data/compare/2gis-green-ring.geojson'),
+          ])
+          if (!oursRes.ok || !tgisRes.ok) throw new Error('Не удалось загрузить GeoJSON')
+          const ours = await oursRes.json()
+          const tgis = await tgisRes.json()
+          const gOurs = firstGeom(ours)
+          const gTgis = firstGeom(tgis)
+          document.getElementById('km-ours').textContent =
+            (ours.features?.[0]?.properties?.km ?? lengthKm(gOurs).toFixed(1)) + ' км'
+          document.getElementById('km-2gis').textContent =
+            (tgis.features?.[0]?.properties?.km ?? lengthKm(gTgis).toFixed(1)) + ' км'
+
+          map.addSource('ours', { type: 'geojson', data: ours })
+          map.addSource('tgis', { type: 'geojson', data: tgis })
+          map.addSource('pin', {
+            type: 'geojson',
+            data: {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: { name: 'контроль' },
+                  geometry: { type: 'Point', coordinates: [PIN.lon, PIN.lat] },
+                },
+              ],
+            },
+          })
+
+          map.addLayer({
+            id: 'tgis-line',
+            type: 'line',
+            source: 'tgis',
+            paint: {
+              'line-color': '#3b82f6',
+              'line-width': 5,
+              'line-opacity': 0.9,
+            },
+          })
+          map.addLayer({
+            id: 'ours-line',
+            type: 'line',
+            source: 'ours',
+            paint: {
+              'line-color': '#3dcf6a',
+              'line-width': 3.5,
+              'line-opacity': 0.95,
+            },
+          })
+          map.addLayer({
+            id: 'pin-circle',
+            type: 'circle',
+            source: 'pin',
+            paint: {
+              'circle-radius': 7,
+              'circle-color': '#f59e0b',
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#111',
+            },
+          })
+
+          const bounds = new maplibregl.LngLatBounds()
+          const extend = (coords) => {
+            for (const c of coords) {
+              if (typeof c[0] === 'number') bounds.extend(c)
+              else extend(c)
+            }
+          }
+          if (gOurs) extend(gOurs.coordinates)
+          if (gTgis) extend(gTgis.coordinates)
+          map.fitBounds(bounds, { padding: 56, maxZoom: 11 })
+
+          const setVis = (id, on) => {
+            map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+          }
+          document.getElementById('tog-ours').addEventListener('change', (e) => {
+            setVis('ours-line', e.target.checked)
+          })
+          document.getElementById('tog-2gis').addEventListener('change', (e) => {
+            setVis('tgis-line', e.target.checked)
+          })
+          document.getElementById('tog-pin').addEventListener('change', (e) => {
+            setVis('pin-circle', e.target.checked)
+          })
+        } catch (e) {
+          showErr(String(e.message || e))
+        }
+      })
+    </script>
+  </body>
+</html>

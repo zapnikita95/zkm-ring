@@ -543,10 +543,14 @@ async function showCityRoutes(ctx, cityId) {
     return
   }
   for (const r of routes.slice(0, 14)) {
-    const featured = r.id === 'zkm-ring' || r.featured
+    const featured = r.id === 'zkm-ring' || r.id === 'zkm-rutrail' || r.featured
     const mark = r.id === s.routeId ? '✓ ' : featured ? '⭐ ' : ''
     const diff = r.difficulty && !featured ? ` · ${diffLabel(r.difficulty)}` : ''
-    kb.text(truncateBtn(`${mark}${r.title} · ${r.kmListed} км${diff}`), `track:${r.id}`).row()
+    const mins = minutesFromMeters((Number(r.kmListed) || 0) * 1000, s.mode || 'bike')
+    kb.text(
+      truncateBtn(`${mark}${r.title} · ${r.kmListed} км · ≈ ${formatDuration(mins)}${diff}`),
+      `track:${r.id}`,
+    ).row()
   }
   kb.text('← К городам', 'go:cities').row()
   addNav(kb, 'cities')

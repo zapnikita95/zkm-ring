@@ -2,25 +2,31 @@
   "routes": [
     {
       "id": "zkm-ring",
-      "title": "Зелёное кольцо Москвы",
-      "description": "Полный круг Зелёного кольца — парки, набережные и лесопарки вокруг города.",
-      "kmListed": 156.0,
+      "title": "Зелёное кольцо по 2ГИС",
+      "description": "Кольцевой веломаршрут как в карточке 2ГИС «Зелёное Кольцо» — около 129 км.",
+      "kmListed": 129.29,
       "geojson": "data/ring.geojson",
-      "points": 5362,
-      "source": "zkm",
+      "points": 2261,
+      "source": "2gis",
       "landmarks": [],
       "featured": true,
-      "sourceNote": "Зеленое кольцо Москвы 160км.gpx",
+      "sourceNote": "https://2gis.ru/moscow/geo/70030077065188560 · zel_kol.gpx",
       "cityId": "msk",
-      "difficulty": "hardcore",
-      "alternatives": [
-        {
-          "id": "koptevo-hook",
-          "title": "Крюк к МЦК Коптево",
-          "geojson": "data/alternatives/koptevo-hook.geojson",
-          "optional": true
-        }
-      ]
+      "difficulty": "hardcore"
+    },
+    {
+      "id": "zkm-rutrail",
+      "title": "Зелёное кольцо RuTrail",
+      "description": "Расширенный трек Зелёного кольца из RuTrail (~156 км) — парки и лесопарки вокруг Москвы.",
+      "kmListed": 155.99,
+      "geojson": "data/ring-rutrail.geojson",
+      "points": 5362,
+      "source": "rutrail",
+      "landmarks": [],
+      "featured": true,
+      "sourceNote": "RuTrail track21 / legacy ring",
+      "cityId": "msk",
+      "difficulty": "hardcore"
     },
     {
       "id": "velo2-tuchkovo-zvenigorod",
