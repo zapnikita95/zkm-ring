@@ -29,6 +29,10 @@ body {
   color: var(--text);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
+  /* страница скроллится/панится, pinch-zoom — только у карты */
+  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 button {
   font: inherit;
@@ -258,6 +262,121 @@ a.brand:hover h1 {
   display: flex;
   gap: 6px;
   margin-top: 8px;
+  flex-shrink: 0;
+}
+.rail-search-wrap {
+  position: relative;
+  margin-top: 10px;
+  flex-shrink: 0;
+}
+.rail-search {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 11px 40px 11px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  outline: none;
+}
+.rail-search:focus {
+  box-shadow: inset 0 0 0 2px rgba(61, 154, 85, 0.45);
+}
+.rail-search::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+.rail-search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.rail-search-clear:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+.rail-line-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+/* Финиш: линия + направление строго в один ряд */
+.rail-line-filters.rail-filters-finish {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 5px;
+}
+.rail-line-filters.rail-filters-finish::-webkit-scrollbar {
+  display: none;
+}
+.rail-line-filters[hidden] {
+  display: none !important;
+}
+.rail-line-chip {
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-weight: 750;
+  font-size: 0.8rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.rail-filters-finish .rail-line-chip {
+  padding: 6px 9px;
+  font-size: 0.76rem;
+}
+.rail-line-chip.on {
+  border-color: var(--line, #fff);
+  background: color-mix(in srgb, var(--line) 28%, var(--surface2));
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.rail-dir-chip {
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.rail-dir-chip.icon-only {
+  padding: 6px 0;
+  width: 34px;
+  font-size: 1.05rem;
+  line-height: 1;
+  text-align: center;
+}
+.rail-dir-chip.with-label {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 7px 8px;
+  font-size: 0.72rem;
+  text-align: center;
+}
+.rail-dir-chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
 }
 .rail-tab {
   flex: 1;
@@ -347,10 +466,17 @@ a.brand:hover h1 {
   position: relative;
   min-height: 0;
   background: #0c100c;
+  touch-action: none;
 }
 #map {
   position: absolute;
   inset: 0;
+  touch-action: none;
+}
+#map .maplibregl-canvas-container,
+#map .maplibregl-canvas,
+#map canvas {
+  touch-action: none !important;
 }
 #map.map-fs-host,
 .map-pane .map-fs-host {
@@ -362,14 +488,10 @@ a.brand:hover h1 {
   inset: 0;
   width: 100%;
   height: 100%;
+  /* Весь SVG прозрачен для touch — иначе pinch/pan на мобилке ломается над точками/линией.
+     Тап по МЦК/МЦД/пунктиру — hit-test в map click (src/map.ts). */
   pointer-events: none;
   z-index: 1;
-}
-/* Клики только по точкам МЦК/МЦД; линия маршрута клики не перехватывает */
-.mp-route-svg .mp-mck-dot,
-.mp-route-svg .mp-mcd-dot {
-  pointer-events: auto;
-  cursor: pointer;
 }
 .map-legend {
   position: absolute;

@@ -228,23 +228,8 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
         path.style.pointerEvents = 'none'
         svg.appendChild(path)
       }
-      if (r.onClick) {
-        const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-        hit.setAttribute('d', d)
-        hit.setAttribute('fill', 'none')
-        hit.setAttribute('stroke', 'transparent')
-        hit.setAttribute('stroke-width', String(Math.max(22, r.width + 16)))
-        hit.setAttribute('stroke-linecap', 'round')
-        hit.setAttribute('stroke-linejoin', 'round')
-        hit.style.cursor = 'pointer'
-        hit.style.pointerEvents = 'auto'
-        if (r.id) hit.setAttribute('data-route-hit', r.id)
-        hit.addEventListener('click', (ev) => {
-          ev.stopPropagation()
-          r.onClick?.()
-        })
-        svg.appendChild(hit)
-      }
+      // onClick маршрутов — только через map click hit-test (не SVG pointer-events:
+      // иначе на мобилке pinch/pan ломается, когда палец над линией/точками).
     }
 
     // МЦК / МЦД: точки + подписи при достаточном зуме (с антиколлизией)
@@ -262,22 +247,13 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
       color: string
       cls: string
       pinned: boolean
-      onClick: () => void
     }) => {
       const xy = map.project([opts.lon, opts.lat])
       if (xy.x < -20 || xy.y < -20 || xy.x > w + 20 || xy.y > h + 20) return
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
       g.setAttribute('class', opts.cls)
       if (opts.name) g.setAttribute('data-name', opts.name)
-      g.style.cursor = 'pointer'
-      g.style.pointerEvents = 'auto'
-
-      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-      hit.setAttribute('cx', String(xy.x))
-      hit.setAttribute('cy', String(xy.y))
-      hit.setAttribute('r', '14')
-      hit.setAttribute('fill', 'transparent')
-      g.appendChild(hit)
+      g.style.pointerEvents = 'none'
 
       const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
       halo.setAttribute('cx', String(xy.x))
@@ -285,7 +261,6 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
       halo.setAttribute('r', '6')
       halo.setAttribute('fill', opts.color)
       halo.setAttribute('opacity', '0.2')
-      halo.style.pointerEvents = 'none'
       g.appendChild(halo)
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
       dot.setAttribute('cx', String(xy.x))
@@ -295,7 +270,6 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
       dot.setAttribute('opacity', '0.82')
       dot.setAttribute('stroke', 'rgba(255,255,255,0.9)')
       dot.setAttribute('stroke-width', '1.2')
-      dot.style.pointerEvents = 'none'
       g.appendChild(dot)
 
       if (opts.name && (showLabels || opts.pinned)) {
@@ -317,7 +291,6 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
           bg.setAttribute('stroke', opts.color)
           bg.setAttribute('stroke-width', '1')
           bg.setAttribute('opacity', '0.96')
-          bg.style.pointerEvents = 'none'
           g.appendChild(bg)
           const t = document.createElementNS('http://www.w3.org/2000/svg', 'text')
           t.setAttribute('x', String(xy.x))
@@ -327,16 +300,11 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
           t.setAttribute('font-size', '11')
           t.setAttribute('font-weight', '700')
           t.setAttribute('font-family', 'system-ui, -apple-system, Segoe UI, sans-serif')
-          t.style.pointerEvents = 'none'
           t.textContent = text
           g.appendChild(t)
         }
       }
 
-      g.addEventListener('click', (ev) => {
-        ev.stopPropagation()
-        opts.onClick()
-      })
       svg!.appendChild(g)
     }
 
@@ -350,12 +318,6 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
         color: '#de64a1',
         cls: 'mp-mck-dot',
         pinned: !!pinnedMckName && name === pinnedMckName,
-        onClick: () => {
-          pinnedMckName = name || null
-          pinnedMcdKey = null
-          redraw()
-          mckClick?.(m)
-        },
       })
     }
 
@@ -372,12 +334,6 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
         color,
         cls: 'mp-mcd-dot',
         pinned: !!pinnedMcdKey && key === pinnedMcdKey,
-        onClick: () => {
-          pinnedMcdKey = key
-          pinnedMckName = null
-          redraw()
-          mcdClick?.(m)
-        },
       })
     }
 
@@ -498,6 +454,91 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
   map.on('resize', onMove)
   map.on('render', onMove)
 
+  const DOT_HIT_PX = 22
+  const ROUTE_HIT_PX = 18
+
+  const distPointSegPx = (
+    p: { x: number; y: number },
+    a: { x: number; y: number },
+    b: { x: number; y: number },
+  ): number => {
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    const len2 = dx * dx + dy * dy
+    if (len2 < 1e-6) {
+      const ex = p.x - a.x
+      const ey = p.y - a.y
+      return Math.hypot(ex, ey)
+    }
+    let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2
+    t = Math.max(0, Math.min(1, t))
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy))
+  }
+
+  const distToRoutePx = (p: { x: number; y: number }, pts: LatLon[]): number => {
+    if (pts.length < 2) return Infinity
+    const sampled = samplePolylineForSvg(pts, 800, 80)
+    let best = Infinity
+    let prev = map.project([sampled[0].lon, sampled[0].lat])
+    for (let i = 1; i < sampled.length; i++) {
+      const cur = map.project([sampled[i].lon, sampled[i].lat])
+      best = Math.min(best, distPointSegPx(p, prev, cur))
+      prev = cur
+    }
+    return best
+  }
+
+  /** Tap-only hit-test: MapLibre click не срабатывает на drag/pinch — жесты идут на canvas. */
+  const onMapTap = (e: maplibregl.MapMouseEvent): void => {
+    const p = e.point
+    let bestDot: { kind: 'mck' | 'mcd'; d: number; mck?: SvgMckDot; mcd?: SvgMcdDot } | null = null
+    for (const m of mckDots) {
+      const xy = map.project([m.lon, m.lat])
+      const d = Math.hypot(p.x - xy.x, p.y - xy.y)
+      if (d <= DOT_HIT_PX && (!bestDot || d < bestDot.d)) bestDot = { kind: 'mck', d, mck: m }
+    }
+    for (const m of mcdDots) {
+      const xy = map.project([m.lon, m.lat])
+      const d = Math.hypot(p.x - xy.x, p.y - xy.y)
+      if (d <= DOT_HIT_PX && (!bestDot || d < bestDot.d)) bestDot = { kind: 'mcd', d, mcd: m }
+    }
+    const markHit = () => {
+      const oe = e.originalEvent as { __zmSvgHit?: boolean } | undefined
+      if (oe) oe.__zmSvgHit = true
+    }
+    if (bestDot?.kind === 'mck' && bestDot.mck) {
+      const name = (bestDot.mck.name || '').trim()
+      pinnedMckName = name || null
+      pinnedMcdKey = null
+      redraw()
+      markHit()
+      mckClick?.(bestDot.mck)
+      return
+    }
+    if (bestDot?.kind === 'mcd' && bestDot.mcd) {
+      const name = (bestDot.mcd.name || '').trim()
+      const lines = (bestDot.mcd.linesLabel || 'МЦД').trim()
+      pinnedMcdKey = `${lines}|${name}`
+      pinnedMckName = null
+      redraw()
+      markHit()
+      mcdClick?.(bestDot.mcd)
+      return
+    }
+
+    let bestRoute: { d: number; r: SvgRouteDraw } | null = null
+    for (const r of routes) {
+      if (!r.onClick || r.pts.length < 2) continue
+      const d = distToRoutePx(p, r.pts)
+      if (d <= ROUTE_HIT_PX && (!bestRoute || d < bestRoute.d)) bestRoute = { d, r }
+    }
+    if (bestRoute) {
+      markHit()
+      bestRoute.r.onClick?.()
+    }
+  }
+  map.on('click', onMapTap)
+
   return {
     setRoutes: (next, nextEnds) => {
       routes = next
@@ -534,6 +575,7 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
       map.off('zoom', onMove)
       map.off('resize', onMove)
       map.off('render', onMove)
+      map.off('click', onMapTap)
       svg?.remove()
       svg = null
     },

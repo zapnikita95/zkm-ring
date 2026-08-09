@@ -1358,6 +1358,7 @@ function setPickMode(mode: PickMode) {
 }
 
 function onMapClick(e: maplibregl.MapMouseEvent) {
+  if ((e.originalEvent as { __zmSvgHit?: boolean } | undefined)?.__zmSvgHit) return
   if (!state.pickMode || !state.track.length) return
   const raw = { lat: e.lngLat.lat, lon: e.lngLat.lng }
   const snapped = snapToTrack(raw, state.pickMode === 'start' ? 'Старт на линии' : 'Финиш на линии')
