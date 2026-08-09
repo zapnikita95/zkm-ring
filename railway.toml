@@ -1,9 +1,11 @@
-# Used when deploying service green-route-web from repo root.
+# Default for GitHub → service zeleny-api (repo-linked).
+# green-route-web overrides via RAILWAY_DOCKERFILE_PATH=deploy/web/Dockerfile
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "deploy/web/Dockerfile"
+dockerfilePath = "deploy/api/Dockerfile"
 
 [deploy]
-healthcheckPath = "/"
+startCommand = "node index.js"
+healthcheckPath = "/api/health"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
