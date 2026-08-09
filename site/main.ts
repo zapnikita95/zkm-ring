@@ -2307,7 +2307,8 @@ function viewTrack() {
     .map((r) => {
       const active = r.id === state.routeId ? 'active' : ''
       const star = r.featured || r.id === 'zkm-ring' ? '⭐ ' : ''
-      const diff = r.difficulty ? `<span class="diff-tag">${diffRu[r.difficulty] || r.difficulty}</span>` : ''
+      const showDiff = r.difficulty && !(r.featured || r.id === 'zkm-ring')
+      const diff = showDiff ? `<span class="diff-tag">${diffRu[r.difficulty] || r.difficulty}</span>` : ''
       return `<button type="button" class="track-btn ${active}" data-pick-track="${r.id}">
         <span class="t">${star}${r.title}${diff}</span>
         <span class="m">≈ ${r.kmListed} км</span>

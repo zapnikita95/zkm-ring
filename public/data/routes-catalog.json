@@ -35,7 +35,7 @@
       ],
       "featured": true,
       "cityId": "msk",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "sourceNote": "https://mapmagic.app/r/community/russia/moscow-oblast/9WZJon6-tuchkovo-velo2-zvenigorod-50km (geometry: 9k8g1BV); https://forest-strip.ru/nashi-proekty/velo-2"
     },
     {
@@ -49,7 +49,7 @@
       "landmarks": [],
       "featured": true,
       "cityId": "msk",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "sourceNote": "https://velo-1.com/velo-yahroma-dubna"
     },
     {
@@ -74,7 +74,7 @@
       "source": "mosregdata",
       "landmarks": [],
       "cityId": "msk",
-      "difficulty": "easy"
+      "difficulty": "medium"
     },
     {
       "id": "podolsk-01",
@@ -86,7 +86,7 @@
       "source": "mosregdata",
       "landmarks": [],
       "cityId": "msk",
-      "difficulty": "easy"
+      "difficulty": "medium"
     },
     {
       "id": "sergposad-02",
@@ -98,7 +98,7 @@
       "source": "mosregdata",
       "landmarks": [],
       "cityId": "msk",
-      "difficulty": "easy"
+      "difficulty": "medium"
     },
     {
       "id": "mytishchi-01",
@@ -170,7 +170,7 @@
       "source": "mosregdata",
       "landmarks": [],
       "cityId": "msk",
-      "difficulty": "medium"
+      "difficulty": "hard"
     },
     {
       "id": "kis-44-bolshoe-i-maloe-sedlo",
@@ -295,7 +295,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "sourceNote": "https://bike-caucasus.ru/trails/16-stavropolkrai-dzhinal-i-kichmalinskij-vodopad"
     },
     {
@@ -309,7 +309,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "sourceNote": "https://bike-caucasus.ru/trails/18-stavropolkrai-dolina-ocharovaniya"
     },
     {
@@ -323,7 +323,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "sourceNote": "https://bike-caucasus.ru/trails/46-stavropolkrai-zamok-kovarstva-i-lyubvi"
     },
     {
@@ -407,7 +407,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "sourceNote": "https://bike-caucasus.ru/trails/64-stavropolkrai-vosmerka-po-kmv"
     },
     {
@@ -421,7 +421,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "sourceNote": "https://bike-caucasus.ru/trails/45-kabardinobalkaria-kichmalka-i-shadzhatmaz"
     },
     {
@@ -435,7 +435,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "hard",
+      "difficulty": "hardcore",
       "sourceNote": "https://bike-caucasus.ru/trails/50-kabardinobalkaria-sovhoznoe-i-dzhenal"
     },
     {
@@ -449,7 +449,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "hard",
+      "difficulty": "hardcore",
       "sourceNote": "https://bike-caucasus.ru/trails/11-stavropolkrai-zheleznovodsk"
     },
     {
@@ -463,7 +463,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "hard",
+      "difficulty": "hardcore",
       "sourceNote": "https://bike-caucasus.ru/trails/13-stavropolkrai-pyatigorsk"
     },
     {
@@ -477,7 +477,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kislovodsk",
-      "difficulty": "hard",
+      "difficulty": "hardcore",
       "sourceNote": "https://bike-caucasus.ru/trails/40-kabardinobalkaria-ozera-shadhurej-i-dzhinal"
     },
     {
@@ -547,7 +547,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "samara",
-      "difficulty": "hard",
+      "difficulty": "hardcore",
       "sourceNote": "http://navigator.velosamara.ru/bicycle-tracks/kutulukskij-klyuchik"
     },
     {
@@ -589,7 +589,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "nnov",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "sourceNote": "https://velonnov.ru/routes/sukhobezvodnoe-arefino/"
     },
     {
@@ -603,7 +603,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "nnov",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "sourceNote": "https://velonnov.ru/routes/k-shuhovskoj-bashne/"
     },
     {
@@ -617,7 +617,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "nnov",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "sourceNote": "https://velonnov.ru/routes/tarasikha-pljukhino-spasskoe-tarasikha/"
     },
     {
@@ -841,7 +841,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kirov",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "sourceNote": "https://biketravel.space/track/124"
     },
     {
@@ -869,7 +869,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "kirov",
-      "difficulty": "hard",
+      "difficulty": "hardcore",
       "sourceNote": "https://biketravel.space/track/141"
     },
     {
@@ -897,7 +897,7 @@
       "landmarks": [],
       "featured": false,
       "cityId": "buryatia",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "sourceNote": "https://biketravel.space/track/129"
     }
   ],
