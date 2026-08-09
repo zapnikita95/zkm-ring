@@ -31,6 +31,7 @@ import {
   stationsAlpha,
   type McdStation,
 } from './mcd'
+import { isInsideMkad, stationsNearTrack } from './mkad'
 import catalogBundled from '../public/data/routes-catalog.json'
 
 type Mode = 'bike' | 'walk'
@@ -123,12 +124,9 @@ const state = {
   addressFor: 'start' as 'start' | 'end',
   addressStatus: '' as string,
   geoStatus: '' as string,
-  /** Сырая гео до подтверждения «Вы находитесь тут?» */
+  /** Сырая гео до подтверждения «Вы находитесь тут?» (только кнопка «Гео» → старт на линии) */
   pendingGeo: null as LatLon | null,
-  /** Зачем подтверждаем гео: старт на линии или только сортировка списка МЦК/МЦД */
-  geoConfirmFor: null as null | 'start' | 'sort',
-  /** Гео подтверждено для сортировки списка станций */
-  geoSortReady: false,
+  geoConfirmFor: null as null | 'start',
   /** Последняя геопозиция пользователя (для «Доехать до старта») */
   userGeo: null as LatLon | null,
   /** false = длина не выбрана — можно кликнуть по линии на карте */
@@ -922,7 +920,10 @@ async function applyMapRailPick(opts: {
     return
   }
   await ensureRailStationsLoaded()
-  const list = opts.kind === 'mck' ? mckStationsCache || [] : mcdStationsCache || []
+  const list =
+    opts.kind === 'mck'
+      ? filterRailStationsForRoute(mckStationsCache)
+      : filterRailStationsForRoute(mcdStationsCache)
   const hit =
     list.find(
       (s) =>
@@ -951,6 +952,11 @@ function applyRailSelection(
     { lat: station.lat, lon: station.lon },
     { lat: snapped.lat, lon: snapped.lon },
   )
+  // выбор станции не должен конкурировать с синей точкой гео
+  state.pendingGeo = null
+  state.geoConfirmFor = null
+  setGeoMarker(null)
+
   if (which === 'start') {
     state.start = snapped
     state.end = null
@@ -998,19 +1004,18 @@ async function showRailPicker(which: 'start' | 'end') {
   closeRailPicker()
   await ensureRailStationsLoaded()
 
-  let geoHint = ''
-  if (which === 'start') {
-    geoHint =
-      state.geoSortReady && state.userGeo
-        ? 'Ближе к вам — выше в списке'
-        : state.pendingGeo && state.geoConfirmFor === 'sort'
-          ? 'Список по алфавиту — подтвердите гео на карте'
-          : 'Список по алфавиту · можно разрешить гео для сортировки'
-  } else {
-    geoHint = 'По возрастанию длины вдоль Зелёного кольца от старта'
-  }
+  const geoHint =
+    which === 'start'
+      ? 'Список по алфавиту · поиск по названию'
+      : isGreenRingRoute()
+        ? 'По возрастанию длины вдоль Зелёного кольца от старта'
+        : 'По возрастанию длины вдоль маршрута от старта'
 
   let tab: 'mck' | 'mcd' = 'mcd'
+  let query = ''
+  const lineFilters = new Set<string>() // пусто = все линии МЦД
+  /** Финиш: пусто = оба направления (берём более короткий путь); иначе только выбранные */
+  const dirFilters = new Set<Dir>()
   const wrap = document.createElement('div')
   wrap.id = 'rail-picker-modal'
   wrap.className = 'auth-modal'
@@ -1018,48 +1023,111 @@ async function showRailPicker(which: 'start' | 'end') {
     <button type="button" class="modal-x" id="rail-close" aria-label="Закрыть">✕</button>
     <h3>${which === 'start' ? 'Старт от МЦК/МЦД' : 'Финиш от МЦК/МЦД'}</h3>
     <p class="lead tiny" id="rail-hint">${escapeHtml(geoHint)}</p>
-    <div id="rail-geo-banner"></div>
     <div class="rail-tabs">
       <button type="button" class="rail-tab" data-rail-tab="mck">МЦК</button>
       <button type="button" class="rail-tab on" data-rail-tab="mcd">МЦД</button>
     </div>
+    <div class="rail-search-wrap">
+      <input type="search" id="rail-search" class="rail-search" placeholder="Название станции" autocomplete="off" enterkeyhint="search" />
+      <button type="button" class="rail-search-clear" id="rail-search-clear" hidden aria-label="Очистить">✕</button>
+    </div>
+    <div class="rail-line-filters ${which === 'end' ? 'rail-filters-finish' : ''}" id="rail-line-filters"></div>
     <div class="mck-pick-list" id="rail-list"></div>
   </div>`
   document.body.appendChild(wrap)
 
-  const syncRailGeoBanner = () => {
-    const el = wrap.querySelector('#rail-geo-banner') as HTMLElement | null
-    const hint = wrap.querySelector('#rail-hint') as HTMLElement | null
-    if (!el) return
-    if (which === 'start' && state.pendingGeo && state.geoConfirmFor === 'sort') {
-      const g = state.pendingGeo
-      el.innerHTML = `<div class="geo-confirm" style="margin:0 0 10px">
-        <p class="geo-confirm-q">Вы находитесь тут?</p>
-        <p class="geo-confirm-meta">Синяя точка на карте · ${g.lat.toFixed(5)}, ${g.lon.toFixed(5)}<br>Пока не подтвердите — список по алфавиту.</p>
-        <div class="action-stack action-stack-3" style="grid-template-columns:1fr 1fr">
-          <button type="button" class="btn" id="rail-geo-yes">Да, это я</button>
-          <button type="button" class="btn secondary" id="rail-geo-no">Нет, алфавит</button>
-        </div>
-      </div>`
-      if (hint) hint.textContent = 'Список по алфавиту — подтвердите гео'
-      el.querySelector('#rail-geo-yes')?.addEventListener('click', () => {
-        acceptPendingGeoAsStart()
-      })
-      el.querySelector('#rail-geo-no')?.addEventListener('click', () => {
-        rejectPendingGeo()
-        syncRailGeoBanner()
-        renderList()
-        if (hint) hint.textContent = 'Список по алфавиту · вкладки МЦК / МЦД'
-      })
-    } else {
-      el.innerHTML = ''
-      if (hint && which === 'start') {
-        hint.textContent =
-          state.geoSortReady && state.userGeo
-            ? 'Ближе к вам — выше в списке'
-            : 'Список по алфавиту · вкладки МЦК / МЦД'
+  const nameMatches = (name: string, q: string) => {
+    const nq = q.trim().toLowerCase()
+    if (!nq) return true
+    return name.toLowerCase().includes(nq)
+  }
+
+  const dirArrow = (d: Dir) => (d === 'cw' ? '↻' : '↺')
+  const dirLabel = (d: Dir) => (d === 'cw' ? 'по часовой' : 'против часовой')
+  const alongLabel = () => (isGreenRingRoute() ? 'по кольцу' : 'вдоль маршрута')
+
+  const pickStationDir = (station: LatLon): { ringM: number; dir: Dir } => {
+    const ccw = ringDistanceAlongTrack(state.track, 'ccw', state.start!, station)
+    const cw = ringDistanceAlongTrack(state.track, 'cw', state.start!, station)
+    const allowCcw = !dirFilters.size || dirFilters.has('ccw')
+    const allowCw = !dirFilters.size || dirFilters.has('cw')
+    if (allowCcw && allowCw) {
+      return ccw <= cw ? { ringM: ccw, dir: 'ccw' } : { ringM: cw, dir: 'cw' }
+    }
+    if (allowCw) return { ringM: cw, dir: 'cw' }
+    return { ringM: ccw, dir: 'ccw' }
+  }
+
+  const finishSub = (ringM: number, dir: Dir, disabled: boolean) => {
+    if (disabled) return 'это старт'
+    return `${alongLabel()} ≈ ${formatRailDist(ringM)} · ${dirArrow(dir)} ${dirLabel(dir)}`
+  }
+
+  const syncFiltersUi = () => {
+    const host = wrap.querySelector('#rail-line-filters') as HTMLElement
+    const parts: string[] = []
+
+    if (tab === 'mcd') {
+      const lines = [
+        { id: 'D1', color: '#F6A600' },
+        { id: 'D2', color: '#E74280' },
+        { id: 'D3', color: '#E95B0C' },
+        { id: 'D4', color: '#40B280' },
+      ]
+      for (const L of lines) {
+        parts.push(
+          `<button type="button" class="rail-line-chip ${lineFilters.has(L.id) ? 'on' : ''}" data-line="${L.id}" style="--line:${L.color}">${L.id}</button>`,
+        )
       }
     }
+
+    if (which === 'end') {
+      if (tab === 'mcd') {
+        // только стрелки — место рядом с D1–D4
+        parts.push(
+          `<button type="button" class="rail-dir-chip icon-only ${dirFilters.has('cw') ? 'on' : ''}" data-dir-filter="cw" aria-label="По часовой" title="По часовой">↻</button>`,
+          `<button type="button" class="rail-dir-chip icon-only ${dirFilters.has('ccw') ? 'on' : ''}" data-dir-filter="ccw" aria-label="Против часовой" title="Против часовой">↺</button>`,
+        )
+      } else {
+        // МЦК: с подписью, одна строка
+        parts.push(
+          `<button type="button" class="rail-dir-chip with-label ${dirFilters.has('cw') ? 'on' : ''}" data-dir-filter="cw">↻ По часовой</button>`,
+          `<button type="button" class="rail-dir-chip with-label ${dirFilters.has('ccw') ? 'on' : ''}" data-dir-filter="ccw">↺ Против часовой</button>`,
+        )
+      }
+    }
+
+    if (!parts.length) {
+      host.hidden = true
+      host.innerHTML = ''
+      return
+    }
+    host.hidden = false
+    host.innerHTML = parts.join('')
+
+    host.querySelectorAll('[data-line]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.line!
+        if (lineFilters.has(id)) lineFilters.delete(id)
+        else lineFilters.add(id)
+        syncFiltersUi()
+        renderList()
+      })
+    })
+    host.querySelectorAll('[data-dir-filter]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const d = (btn as HTMLElement).dataset.dirFilter as Dir
+        if (dirFilters.has(d)) dirFilters.delete(d)
+        else dirFilters.add(d)
+        syncFiltersUi()
+        renderList()
+      })
+    })
+  }
+
+  const syncSearchClear = () => {
+    const clearBtn = wrap.querySelector('#rail-search-clear') as HTMLButtonElement
+    clearBtn.hidden = !query.trim()
   }
 
   const renderList = () => {
@@ -1075,32 +1143,14 @@ async function showRailPicker(which: 'start' | 'end') {
       color: string
       sub: string
       disabled: boolean
+      pickDir?: Dir
     }
     let rows: Row[] = []
     if (tab === 'mck') {
-      const stations = mckStationsCache || []
-      let ranked = stations.slice()
-      if (which === 'start' && state.geoSortReady && state.userGeo) {
-        ranked = stationsNearStart(stations, state.userGeo)
-      } else if (which === 'start') {
-        ranked = stationsAlpha(stations)
-      } else {
-        ranked = stations
-          .map((s) => ({
-            ...s,
-            ringM: ringDistanceAlongTrack(state.track, state.direction, state.start!, s),
-          }))
-          .sort((a, b) => a.ringM - b.ringM)
-      }
-      rows = ranked.map((s) => {
-        const disabled = which === 'end' && s.id === startId
-        let sub = ''
-        if (which === 'start' && 'distM' in s && typeof (s as { distM?: number }).distM === 'number') {
-          sub = `≈ ${formatRailDist((s as { distM: number }).distM)} от вас`
-        } else if (which === 'end' && 'ringM' in s) {
-          sub = disabled ? 'это старт' : `по кольцу ≈ ${formatRailDist((s as { ringM: number }).ringM)}`
-        }
-        return {
+      const stations = filterRailStationsForRoute(mckStationsCache)
+      if (which === 'start') {
+        const ranked = stationsAlpha(stations).filter((s) => nameMatches(s.name, query))
+        rows = ranked.map((s) => ({
           id: s.id,
           name: s.name,
           lat: s.lat,
@@ -1108,33 +1158,41 @@ async function showRailPicker(which: 'start' | 'end') {
           label: `МЦК · ${s.name}`,
           badge: 'МЦК',
           color: '#de64a1',
-          sub,
-          disabled,
-        }
-      })
-    } else {
-      const stations = mcdStationsCache || []
-      let ranked: Array<McdStation & { distM?: number; ringM?: number }> = stations.slice()
-      if (which === 'start' && state.geoSortReady && state.userGeo) {
-        ranked = stationsNearStart(stations, state.userGeo)
-      } else if (which === 'start') {
-        ranked = stationsAlpha(stations)
+          sub: '',
+          disabled: false,
+        }))
       } else {
-        ranked = stations
-          .map((s) => ({
-            ...s,
-            ringM: ringDistanceAlongTrack(state.track, state.direction, state.start!, s),
-          }))
-          .sort((a, b) => (a.ringM || 0) - (b.ringM || 0))
+        const ranked = stations
+          .map((s) => {
+            const { ringM, dir } = pickStationDir(s)
+            return { ...s, ringM, dir }
+          })
+          .sort((a, b) => a.ringM - b.ringM)
+          .filter((s) => nameMatches(s.name, query))
+        rows = ranked.map((s) => {
+          const disabled = s.id === startId
+          return {
+            id: s.id,
+            name: s.name,
+            lat: s.lat,
+            lon: s.lon,
+            label: `МЦК · ${s.name}`,
+            badge: 'МЦК',
+            color: '#de64a1',
+            sub: finishSub(s.ringM, s.dir, disabled),
+            disabled,
+            pickDir: s.dir,
+          }
+        })
       }
-      rows = ranked.map((s) => {
-        const disabled = which === 'end' && s.id === startId
-        let sub = ''
-        if (which === 'start' && s.distM != null) sub = `≈ ${formatRailDist(s.distM)} от вас`
-        else if (which === 'end' && s.ringM != null) {
-          sub = disabled ? 'это старт' : `по кольцу ≈ ${formatRailDist(s.ringM)}`
-        }
-        return {
+    } else {
+      let stations = filterRailStationsForRoute(mcdStationsCache)
+      if (lineFilters.size) {
+        stations = stations.filter((s) => (s.lines || []).some((L) => lineFilters.has(L)))
+      }
+      if (which === 'start') {
+        const ranked = stationsAlpha(stations).filter((s) => nameMatches(s.name, query))
+        rows = ranked.map((s) => ({
           id: s.id,
           name: s.name,
           lat: s.lat,
@@ -1142,28 +1200,54 @@ async function showRailPicker(which: 'start' | 'end') {
           label: `${mcdLinesLabel(s)} · ${s.name}`,
           badge: mcdLinesLabel(s),
           color: s.color || '#40B280',
-          sub,
-          disabled,
-        }
-      })
+          sub: '',
+          disabled: false,
+        }))
+      } else {
+        const ranked = stations
+          .map((s) => {
+            const { ringM, dir } = pickStationDir(s)
+            return { ...s, ringM, dir }
+          })
+          .sort((a, b) => a.ringM - b.ringM)
+          .filter((s) => nameMatches(s.name, query))
+        rows = ranked.map((s) => {
+          const disabled = s.id === startId
+          return {
+            id: s.id,
+            name: s.name,
+            lat: s.lat,
+            lon: s.lon,
+            label: `${mcdLinesLabel(s)} · ${s.name}`,
+            badge: mcdLinesLabel(s),
+            color: s.color || '#40B280',
+            sub: finishSub(s.ringM, s.dir, disabled),
+            disabled,
+            pickDir: s.dir,
+          }
+        })
+      }
     }
 
-    listEl.innerHTML = rows
-      .map(
-        (r, i) => `<button type="button" class="mck-pick-btn ${r.disabled ? 'is-disabled' : ''}" data-rail-idx="${i}" ${
-          r.disabled ? 'disabled' : ''
-        }>
+    listEl.innerHTML = rows.length
+      ? rows
+          .map(
+            (r, i) => `<button type="button" class="mck-pick-btn ${r.disabled ? 'is-disabled' : ''}" data-rail-idx="${i}" ${
+              r.disabled ? 'disabled' : ''
+            }>
           <span class="t"><span class="rail-badge" style="background:${r.color}">${escapeHtml(r.badge)}</span> ${escapeHtml(r.name)}</span>
           ${r.sub ? `<span class="s">${escapeHtml(r.sub)}</span>` : ''}
         </button>`,
-      )
-      .join('')
+          )
+          .join('')
+      : `<div class="empty" style="padding:16px 8px">Ничего не нашлось</div>`
 
     listEl.querySelectorAll('[data-rail-idx]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const idx = Number((btn as HTMLElement).dataset.railIdx)
         const row = rows[idx]
         if (!row || row.disabled) return
+        if (which === 'end' && row.pickDir) state.direction = row.pickDir
         closeRailPicker()
         applyRailSelection(
           { id: row.id, lat: row.lat, lon: row.lon },
@@ -1184,28 +1268,27 @@ async function showRailPicker(which: 'start' | 'end') {
       wrap.querySelectorAll('[data-rail-tab]').forEach((b) => {
         b.classList.toggle('on', (b as HTMLElement).dataset.railTab === tab)
       })
+      syncFiltersUi()
       renderList()
     })
   })
+  const searchInput = wrap.querySelector('#rail-search') as HTMLInputElement
+  searchInput.addEventListener('input', () => {
+    query = searchInput.value
+    syncSearchClear()
+    renderList()
+  })
+  wrap.querySelector('#rail-search-clear')?.addEventListener('click', () => {
+    query = ''
+    searchInput.value = ''
+    syncSearchClear()
+    searchInput.focus()
+    renderList()
+  })
+  syncFiltersUi()
+  syncSearchClear()
   renderList()
-  syncRailGeoBanner()
-
-  // На старте: список сразу (алфавит) + предложение гео; сортировка — только после «Да»
-  if (which === 'start' && !state.geoSortReady && !state.pendingGeo) {
-    void (async () => {
-      const geo = await requestUserGeo({ setAsStart: false, forSort: true })
-      if (!document.getElementById('rail-picker-modal')) return
-      if (!geo) {
-        const hint = wrap.querySelector('#rail-hint')
-        if (hint) hint.textContent = 'Список по алфавиту · вкладки МЦК / МЦД'
-        return
-      }
-      syncRailGeoBanner()
-      renderList()
-    })()
-  } else if (which === 'start' && state.pendingGeo && state.geoConfirmFor === 'sort') {
-    syncRailGeoBanner()
-  }
+  requestAnimationFrame(() => searchInput.focus())
 }
 
 function buildSegment(): LatLon[] {
@@ -1239,22 +1322,8 @@ function setGeoMarker(pt: LatLon | null) {
 function acceptPendingGeoAsStart() {
   const geo = state.pendingGeo
   if (!geo) return
-  if (state.geoConfirmFor === 'sort') {
-    state.userGeo = geo
-    state.geoSortReady = true
-    state.pendingGeo = null
-    state.geoConfirmFor = null
-    state.geoStatus = 'Гео подтверждено · станции ближе к вам сверху'
-    setGeoMarker(null)
-    render()
-    // обновить открытый пикер, если есть
-    const list = document.getElementById('rail-list')
-    if (list) void showRailPicker('start')
-    return
-  }
   if (state.track.length < 2) return
   state.userGeo = geo
-  state.geoSortReady = true
   const snapped = snapToTrack(geo, 'Ближайшая к геопозиции')
   state.start = snapped
   state.end = null
@@ -1270,14 +1339,8 @@ function acceptPendingGeoAsStart() {
 
 function rejectPendingGeo() {
   state.pendingGeo = null
-  const wasSort = state.geoConfirmFor === 'sort'
   state.geoConfirmFor = null
   setGeoMarker(null)
-  if (wasSort) {
-    state.geoStatus = 'Список по алфавиту · вкладки МЦК / МЦД'
-    render()
-    return
-  }
   state.geoStatus = 'Укажите адрес вручную'
   render()
   requestAnimationFrame(() => {
@@ -1494,8 +1557,29 @@ function initMap() {
     center: [37.62, 55.75],
     zoom: 10,
     attributionControl: { compact: true },
+    dragRotate: false,
+    pitchWithRotate: false,
+    touchPitch: false,
   })
+  map.touchZoomRotate.disableRotation()
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+  // iOS Safari: pinch на странице → масштабирует весь документ; гасим жест вне карты
+  const blockPagePinch = (e: Event) => {
+    e.preventDefault()
+  }
+  document.addEventListener('gesturestart', blockPagePinch, { passive: false })
+  document.addEventListener('gesturechange', blockPagePinch, { passive: false })
+  document.addEventListener('gestureend', blockPagePinch, { passive: false })
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (e.touches.length < 2) return
+      const t = e.target as Node | null
+      if (t && host.contains(t)) return
+      e.preventDefault()
+    },
+    { passive: false },
+  )
   svgRoutes = wireSvgRoutes(map, host)
   svgRoutes.onMckClick((dot) => {
     const name = dot.name || 'станция'
@@ -1748,30 +1832,54 @@ let mckLoadPromise: Promise<MckStation[]> | null = null
 let mcdStationsCache: McdStation[] | null = null
 let mcdLoadPromise: Promise<McdStation[]> | null = null
 
-function showMckOnMap(): boolean {
-  // МЦК / МЦД имеют смысл только для Москвы / Зелёного кольца
+function isMoscowRailContext(): boolean {
   if (state.cityId === 'msk') return true
   const meta = state.catalog.find((r) => r.id === state.routeId)
   return (meta?.cityId || 'msk') === 'msk' || state.routeId === 'zkm-ring'
 }
 
+function isGreenRingRoute(): boolean {
+  return state.routeId === 'zkm-ring'
+}
+
+/** Станции для карты и пикера: ЗКМ — внутри МКАД; остальные — ≤5 км от трека. */
+function filterRailStationsForRoute<T extends LatLon>(all: T[] | null | undefined): T[] {
+  if (!all?.length || !isMoscowRailContext()) return []
+  if (state.track.length < 2) return []
+  if (isGreenRingRoute()) return all.filter((s) => isInsideMkad(s))
+  return stationsNearTrack(all, state.track, 5000)
+}
+
+function showMckOnMap(): boolean {
+  if (!isMoscowRailContext() || state.track.length < 2) return false
+  // пока кэш не загружен — кнопки есть; после загрузки — только если есть видимые станции
+  if (mckStationsCache == null && mcdStationsCache == null) return true
+  return (
+    filterRailStationsForRoute(mckStationsCache).length +
+      filterRailStationsForRoute(mcdStationsCache).length >
+    0
+  )
+}
+
 function applyMckDotsToSvg() {
   if (!svgRoutes) return
-  if (!showMckOnMap() || !mckStationsCache?.length) {
+  const stations = filterRailStationsForRoute(mckStationsCache)
+  if (!stations.length) {
     svgRoutes.setMckDots([])
     return
   }
-  svgRoutes.setMckDots(mckStationsCache.map((s) => ({ lat: s.lat, lon: s.lon, name: s.name })))
+  svgRoutes.setMckDots(stations.map((s) => ({ lat: s.lat, lon: s.lon, name: s.name })))
 }
 
 function applyMcdDotsToSvg() {
   if (!svgRoutes) return
-  if (!showMckOnMap() || !mcdStationsCache?.length) {
+  const stations = filterRailStationsForRoute(mcdStationsCache)
+  if (!stations.length) {
     svgRoutes.setMcdDots([])
     return
   }
   svgRoutes.setMcdDots(
-    mcdStationsCache.map((s) => ({
+    stations.map((s) => ({
       lat: s.lat,
       lon: s.lon,
       name: s.name,
@@ -1782,7 +1890,7 @@ function applyMcdDotsToSvg() {
 }
 
 async function ensureMckStationsLoaded() {
-  if (!showMckOnMap()) {
+  if (!isMoscowRailContext()) {
     applyMckDotsToSvg()
     return
   }
@@ -1802,7 +1910,7 @@ async function ensureMckStationsLoaded() {
 }
 
 async function ensureMcdStationsLoaded() {
-  if (!showMckOnMap()) {
+  if (!isMoscowRailContext()) {
     applyMcdDotsToSvg()
     return
   }
@@ -1822,7 +1930,10 @@ async function ensureMcdStationsLoaded() {
 }
 
 async function ensureRailStationsLoaded() {
+  const before = showMckOnMap()
   await Promise.all([ensureMckStationsLoaded(), ensureMcdStationsLoaded()])
+  // кнопки МЦК/МЦД зависят от фильтра — перерисовать панель, если видимость сменилась
+  if (before !== showMckOnMap()) render()
 }
 
 function updateLegend() {
@@ -1836,11 +1947,6 @@ function updateLegend() {
     let text = meta
       ? legendTrackTitle({ id: state.routeId, title: meta.title, kmListed: meta.kmListed })
       : 'Трек на карте'
-    if (state.routeId === 'zkm-ring' && koptevoAlt.length >= 2) {
-      text += state.useKoptevoAlt
-        ? ' · крюк Коптево'
-        : ' · пунктир — крюк Коптево'
-    }
     el.textContent = text
   } else {
     el.textContent = 'Выберите трек'
@@ -2235,17 +2341,6 @@ function viewTrack() {
         <button type="button" class="btn-gpx-plus" id="btn-toggle-upload" aria-expanded="false" title="Загрузить GPX / KML / FIT">＋</button>
       </div>
       <p class="lead track-lead">${city.subtitle || 'Выберите трек или загрузите свой файл.'}</p>
-      ${
-        state.routeId === 'zkm-ring' && koptevoAlt.length >= 2
-          ? `<button type="button" class="chip ${state.useKoptevoAlt ? 'active' : ''}" id="btn-koptevo-alt" title="Старый заезд к МЦК Коптево — не в официальном кольце">
-        ${
-          state.useKoptevoAlt
-            ? '✓ Крюк Коптево в маршруте · тап — официальный путь'
-            : `Пунктир: крюк к МЦК Коптево · ≈ ${koptevoAltKm.toFixed(1)} км`
-        }
-      </button>`
-          : ''
-      }
       <div class="upload-zone collapsible" id="upload-zone" hidden>
         <input type="file" id="track-file" accept=".gpx,.kml,.fit,application/gpx+xml,application/vnd.google-earth.kml+xml" hidden />
         <button type="button" class="btn secondary" id="btn-upload-track">📂 Выбрать файл</button>
@@ -2304,29 +2399,24 @@ function viewStart() {
     : state.geoStatus
       ? 'field-status ok'
       : 'field-status'
-  const geoConfirm =
-    state.pendingGeo && state.geoConfirmFor !== 'sort'
-      ? (() => {
+  const geoConfirm = state.pendingGeo
+    ? (() => {
         const g = state.pendingGeo!
         const nearM =
           state.track.length >= 2 ? haversineM(g, state.track[nearestIndex(state.track, g)]) : null
         const approx = /IP|приблизит/i.test(state.geoStatus)
         return `<div class="geo-confirm">
         <p class="geo-confirm-q">Вы находитесь тут?</p>
-        <p class="geo-confirm-meta">Синяя точка с подписью «Вы здесь» — место от телефона${
+        <p class="geo-confirm-meta">Синяя точка — место от телефона${
           approx ? ' <b>(примерно по IP, не GPS)</b>' : ''
-        }. Станции МЦК рядом на карте — это не выбор гео.<br>${g.lat.toFixed(5)}, ${g.lon.toFixed(5)}${
+        }.<br>${g.lat.toFixed(5)}, ${g.lon.toFixed(5)}${
           nearM != null
-            ? state.geoConfirmFor === 'sort'
-              ? `<br>До зелёной линии ≈ ${formatKm(nearM)}. После «Да» — станции по удалению.`
-              : `<br>До зелёной линии ≈ ${formatKm(nearM)}; после «Да» старт встанет на линию.`
+            ? `<br>До зелёной линии ≈ ${formatKm(nearM)}; после «Да» старт встанет на линию.`
             : ''
         }</p>
         <div class="action-stack">
           <button type="button" class="btn" id="btn-geo-yes">Да, это я</button>
-          <button type="button" class="btn secondary" id="btn-geo-no">${
-            state.geoConfirmFor === 'sort' ? 'Нет, список по алфавиту' : 'Нет, ввести адрес'
-          }</button>
+          <button type="button" class="btn secondary" id="btn-geo-no">Нет, ввести адрес</button>
         </div>
       </div>`
       })()
@@ -2694,9 +2784,14 @@ async function showMckStationPicker() {
   closeApproachModal()
   let stations: MckStation[] = []
   try {
-    stations = await loadMckStations()
+    await ensureMckStationsLoaded()
+    stations = filterRailStationsForRoute(mckStationsCache)
   } catch {
     alert('Не удалось загрузить станции МЦК')
+    return
+  }
+  if (!stations.length) {
+    toast('Рядом с маршрутом нет станций МЦК')
     return
   }
   const ranked = stationsNearStart(stations, state.start)
@@ -2787,10 +2882,7 @@ async function geoFromIpApprox(): Promise<LatLon | null> {
 }
 
 /** Гео: Capacitor → браузер (low/high accuracy) → IP-приближение. */
-async function requestUserGeo(opts: {
-  setAsStart: boolean
-  forSort?: boolean
-}): Promise<LatLon | null> {
+async function requestUserGeo(opts: { setAsStart: boolean }): Promise<LatLon | null> {
   if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
     state.geoStatus =
       'Нужен HTTPS для геопозиции (откройте https://green-route.ru — не «Не защищено»)'
@@ -2801,15 +2893,14 @@ async function requestUserGeo(opts: {
   if (opts.setAsStart) render()
 
   const applyGeo = (geo: LatLon, note: string) => {
-    if (opts.setAsStart || opts.forSort) {
-      if (opts.setAsStart && state.track.length < 2) {
+    if (opts.setAsStart) {
+      if (state.track.length < 2) {
         state.geoStatus = 'Сначала выберите трек'
         render()
         return geo
       }
-      // Не пишем userGeo до подтверждения — иначе список МЦК/МЦД уже отсортируется
       state.pendingGeo = geo
-      state.geoConfirmFor = opts.forSort ? 'sort' : 'start'
+      state.geoConfirmFor = 'start'
       state.geoStatus = note
       setGeoMarker(geo)
       map?.flyTo({ center: [geo.lon, geo.lat], zoom: 14, duration: 500 })
@@ -2877,9 +2968,6 @@ async function requestUserGeo(opts: {
 }
 
 function wirePanel() {
-  $('#btn-koptevo-alt')?.addEventListener('click', () => {
-    toggleKoptevoAlt()
-  })
   document.querySelectorAll('[data-pick-track]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = (btn as HTMLElement).dataset.pickTrack!
@@ -3355,9 +3443,7 @@ async function selectTrack(id: string) {
   state.customRaw = ''
   paintMap()
   const meta = state.catalog.find((r) => r.id === id) || savedMeta.get(id)
-  const altNote =
-    id === 'zkm-ring' && koptevoAlt.length >= 2 ? ' · пунктир — крюк Коптево' : ''
-  setTopSub(meta ? `${meta.title} · ≈ ${meta.kmListed} км${altNote}` : 'Трек выбран')
+  setTopSub(meta ? `${meta.title} · ≈ ${meta.kmListed} км` : 'Трек выбран')
 }
 
 function showCityPickerModal() {
