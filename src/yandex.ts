@@ -1,18 +1,128 @@
 import type { LatLon } from './geo'
-import { sampleAlong } from './geo'
+import { haversineM, pathLengthM, sampleAlong, turnAngleDeg } from './geo'
 import type { Landmark } from './data'
 
 export type TravelMode = 'walk' | 'bike'
 
 /**
- * Яндекс.Карты: больше ~6–7 точек в rtext — часто уводит с тропы на дороги.
- * Держим короткий кусок; следующий — после подтверждения в приложении.
+ * Плотные via + нарезка на несколько URL — иначе Яндекс спрямляет парки.
  */
-export const YANDEX_MAX_POINTS = 6
+export const YANDEX_MAX_POINTS = 8
+export const YANDEX_CHUNK_POINTS = 12
+
+const TURN_DEG = 55
+/** Обычные углы не чаще чем раз в N м; очень острые — всегда. */
+const MIN_CORNER_GAP_M = 120
+/** В парках Яндекс иначе спрямляет — шаг via плотнее. */
+const DENSE_SPACING_M = 350
+const DENSE_MAX_POINTS = 220
+const CORNER_INJECT_MIN_M = 100
+/** Угол ≥ этого не глотаем из‑за gap / «рядом уже via». */
+const ALWAYS_KEEP_TURN_DEG = 80
+
+export function yandexMaxPointsForDistance(meters: number): number {
+  if (meters <= 5_000) return 14
+  if (meters <= 12_000) return 12
+  if (meters <= 25_000) return 10
+  return 8
+}
+
+function cornerIndices(route: LatLon[], turnDeg = TURN_DEG): number[] {
+  if (route.length < 3) return []
+  const out: number[] = []
+  let lastAlong = 0
+  let acc = 0
+  for (let i = 1; i < route.length; i++) {
+    acc += haversineM(route[i - 1], route[i])
+    if (i === route.length - 1) break
+    const turn = turnAngleDeg(route[i - 1], route[i], route[i + 1])
+    if (turn < turnDeg) continue
+    const always = turn >= ALWAYS_KEEP_TURN_DEG
+    if (!always && acc - lastAlong < MIN_CORNER_GAP_M && out.length) continue
+    out.push(i)
+    lastAlong = acc
+  }
+  return out
+}
+
+function snapToRouteIndex(route: LatLon[], p: LatLon, used: Set<number>): number {
+  let best = 0
+  let bestD = Infinity
+  for (let i = 0; i < route.length; i++) {
+    if (used.has(i)) continue
+    const d = haversineM(route[i], p)
+    if (d < bestD) {
+      bestD = d
+      best = i
+    }
+  }
+  return best
+}
+
+/** Плотный набор via: равномерно + острые углы. */
+export function denseWaypointsForYandex(route: LatLon[], metersHint?: number): LatLon[] {
+  if (route.length < 2) return route.slice()
+  if (route.length <= 3) return route.slice()
+
+  const meters = metersHint ?? pathLengthM(route)
+  const targetN = Math.max(
+    3,
+    Math.min(DENSE_MAX_POINTS, Math.ceil(meters / DENSE_SPACING_M) + 1),
+  )
+
+  const picked = new Set<number>([0, route.length - 1])
+  for (const p of sampleAlong(route, targetN)) {
+    if (picked.size >= DENSE_MAX_POINTS) break
+    picked.add(snapToRouteIndex(route, p, picked))
+  }
+
+  const ranked = cornerIndices(route)
+    .map((i) => ({
+      i,
+      turn: turnAngleDeg(route[i - 1], route[i], route[i + 1]),
+    }))
+    .sort((a, b) => b.turn - a.turn)
+
+  for (const { i, turn } of ranked) {
+    if (picked.size >= DENSE_MAX_POINTS) break
+    if (picked.has(i)) continue
+    const nearLimit = turn >= ALWAYS_KEEP_TURN_DEG ? 55 : CORNER_INJECT_MIN_M
+    let near = false
+    for (const j of picked) {
+      if (haversineM(route[i], route[j]) < nearLimit) {
+        near = true
+        break
+      }
+    }
+    if (!near) picked.add(i)
+  }
+
+  return [...picked]
+    .sort((a, b) => a - b)
+    .map((i) => route[i])
+}
+
+/**
+ * Одна нога ≤14 (короткие / совместимость).
+ */
+export function densifyRouteForYandex(route: LatLon[], metersHint?: number): LatLon[] {
+  const dense = denseWaypointsForYandex(route, metersHint)
+  const meters = metersHint ?? pathLengthM(route)
+  const budget = Math.min(14, yandexMaxPointsForDistance(meters))
+  if (dense.length <= budget) return dense
+  const out: LatLon[] = [dense[0]]
+  const mid = budget - 2
+  for (let k = 1; k <= mid; k++) {
+    const idx = Math.round((k * (dense.length - 1)) / (budget - 1))
+    out.push(dense[idx])
+  }
+  out.push(dense[dense.length - 1])
+  return out.filter((p, i, arr) => i === 0 || p !== arr[i - 1])
+}
 
 /** Нарезка ориентиров на ноги с перекрытием последней точки. */
-export function chunkLandmarksForYandex(lms: Landmark[], maxPts = YANDEX_MAX_POINTS): Landmark[][] {
-  const n = Math.max(3, Math.min(8, maxPts))
+export function chunkLandmarksForYandex(lms: Landmark[], maxPts = YANDEX_CHUNK_POINTS): Landmark[][] {
+  const n = Math.max(3, Math.min(14, maxPts))
   if (lms.length === 0) return []
   if (lms.length <= n) return [lms.slice()]
 
@@ -27,9 +137,9 @@ export function chunkLandmarksForYandex(lms: Landmark[], maxPts = YANDEX_MAX_POI
   return chunks
 }
 
-/** Нарезка готовых via-точек (ориентиры + якоря) с перекрытием. */
-export function chunkPointsForYandex(pts: LatLon[], maxPts = YANDEX_MAX_POINTS): LatLon[][] {
-  const n = Math.max(3, Math.min(8, maxPts))
+/** Нарезка via-точек с перекрытием. */
+export function chunkPointsForYandex(pts: LatLon[], maxPts = YANDEX_CHUNK_POINTS): LatLon[][] {
+  const n = Math.max(3, Math.min(14, maxPts))
   if (pts.length < 2) return []
   if (pts.length <= n) return [pts.slice()]
 
@@ -45,21 +155,50 @@ export function chunkPointsForYandex(pts: LatLon[], maxPts = YANDEX_MAX_POINTS):
   return chunks
 }
 
-/** Fallback: равномерные точки по линии кольца (если ориентиров мало). */
-export function chunkForYandex(route: LatLon[], pointsPerSeg = YANDEX_MAX_POINTS): LatLon[][] {
-  const n = Math.max(3, Math.min(8, pointsPerSeg))
-  if (route.length <= n) return [route.slice()]
-
-  const density = Math.min(route.length, Math.max(n * 3, Math.ceil(route.length / 20)))
-  const sampled = sampleAlong(route, density)
-  return chunkPointsForYandex(sampled, n)
+/** Fallback: dense → chunk (без прореживания до 8 до чанка). */
+export function chunkForYandex(route: LatLon[], pointsPerSeg = YANDEX_CHUNK_POINTS): LatLon[][] {
+  const meters = pathLengthM(route)
+  const n = Math.max(3, Math.min(14, pointsPerSeg || yandexMaxPointsForDistance(meters)))
+  const densified = denseWaypointsForYandex(route, meters)
+  return chunkPointsForYandex(densified, n)
 }
 
-export function yandexRouteUrl(points: LatLon[], mode: TravelMode): string {
-  const capped = points.slice(0, YANDEX_MAX_POINTS)
+export function yandexUrlFromWaypoints(points: LatLon[], mode: TravelMode): string {
+  const capped = points.slice(0, 14)
   const rtext = capped.map((p) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`).join('~')
   const rtt = mode === 'bike' ? 'bc' : 'pd'
   return `https://yandex.ru/maps/?rtext=${rtext}&rtt=${rtt}`
+}
+
+export type YandexLeg = {
+  index: number
+  total: number
+  points: LatLon[]
+  meters: number
+  url: string
+}
+
+export function yandexMapsLegs(
+  route: LatLon[],
+  mode: TravelMode,
+  chunkPts = YANDEX_CHUNK_POINTS,
+): YandexLeg[] {
+  if (route.length < 2) return []
+  const dense = denseWaypointsForYandex(route)
+  const chunks = chunkPointsForYandex(dense, chunkPts)
+  return chunks.map((points, index) => ({
+    index,
+    total: chunks.length,
+    points,
+    meters: pathLengthM(points),
+    url: yandexUrlFromWaypoints(points, mode),
+  }))
+}
+
+/** URL одной ноги: точки уже выбраны — без повторного densify. */
+export function yandexRouteUrl(points: LatLon[], mode: TravelMode, maxPts?: number): string {
+  const budget = Math.min(14, maxPts ?? 14)
+  return yandexUrlFromWaypoints(points.slice(0, budget), mode)
 }
 
 export function landmarksToLatLon(lms: Landmark[]): LatLon[] {
