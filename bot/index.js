@@ -28,13 +28,15 @@ import {
 import { haversineM } from './lib/geo.js'
 import { geocodeCandidates, cityOf, reverseGeocode } from './lib/geocode.js'
 import { fetchPointMapPng, fetchRouteMapPng } from './lib/staticmap.js'
-import { apiGetTrack, apiListTracks, apiPreviewPng, apiUploadTrack, apiTrackEvent } from './lib/api.js'
+import { apiGetTrack, apiListTracks, apiPreviewPng, apiUploadTrack, apiTrackEvent, trackedYandexUrl } from './lib/api.js'
 import {
   APPROACH_THRESHOLD_M,
   DIFFICULTY,
   difficultiesForTrackM,
   difficultyRangeM,
 } from './lib/wizard.js'
+import { DONATE_CAPTION, railAvailable } from './lib/rail.js'
+import { createRailUi } from './lib/rail_ui.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PAGE_SIZE = 6
@@ -387,6 +389,8 @@ async function showMenu(ctx, { welcome = false } = {}) {
     .row()
     .text('🗺 Сменить трек', 'go:track')
     .text(s.mode === 'bike' ? '🚲 Вело' : '🚶 Пешком', 'go:mode')
+    .row()
+    .text('💛 Поддержать', 'go:donate')
   const intro = welcome ? `${WELCOME_CAPTION}\n\n` : ''
   const caption =
     intro +
@@ -550,6 +554,14 @@ async function showMode(ctx) {
   await render(ctx, '<b>Режим движения</b>\nВлияет на оценку времени.', kb)
 }
 
+async function showDonate(ctx) {
+  const s = sess(ctx.from.id)
+  s.screen = 'donate'
+  const kb = new InlineKeyboard()
+  addNav(kb, 'menu')
+  await render(ctx, `<b>Поддержать</b>\n\n${DONATE_CAPTION}`, kb)
+}
+
 async function showStartHub(ctx) {
   const s = sess(ctx.from.id)
   s.screen = 'start_hub'
@@ -565,6 +577,10 @@ async function showStartHub(ctx) {
     .row()
     .text('📌 Из точек на линии', 'start:list')
     .row()
+  if (railAvailable(s.routeId, s.cityId)) {
+    kb.text('🚇 МЦК / МЦД', 'start:rail').row()
+  }
+  kb.text('💛 Поддержать', 'go:donate').row()
   addNav(kb, 'menu')
   const caption =
     `<b>Выбор старта</b>\n` +
@@ -572,7 +588,8 @@ async function showStartHub(ctx) {
     `Город: ${city.title}\n\n` +
     `· <b>Геолокация</b> — с подтверждением (гео иногда врёт)\n` +
     `· <b>Адрес</b> — напишите улицу, выберете из вариантов\n` +
-    `· <b>Точки</b> — список вдоль линии`
+    `· <b>Точки</b> — список вдоль линии` +
+    (railAvailable(s.routeId, s.cityId) ? `\n· <b>МЦК / МЦД</b> — от станции` : '')
   const png = await fetchRouteMapPng([], {
     routeId: s.routeId || 'zkm-ring',
     cacheKey: `full:${s.routeId || 'zkm-ring'}`,
@@ -849,6 +866,9 @@ async function showFinishHub(ctx) {
     .row()
     .text('🏁 Финиш из точек', 'finish:points')
     .row()
+  if (railAvailable(s.routeId, s.cityId)) {
+    kb.text('🚇 Финиш от МЦК / МЦД', 'finish:rail').row()
+  }
   addNav(kb, 'start_hub')
   await render(
     ctx,
@@ -856,10 +876,23 @@ async function showFinishHub(ctx) {
       `Старт: <b>${s.start.name}</b>\n` +
       `Трек: ${trackTitle(s.routeId)}\n\n` +
       `· <b>По длине</b> — сложность → направление → км/время\n` +
-      `· <b>Из точек</b> — сложность → направление → точки в этом диапазоне`,
+      `· <b>Из точек</b> — сложность → направление → точки в этом диапазоне` +
+      (railAvailable(s.routeId, s.cityId)
+        ? `\n· <b>МЦК / МЦД</b> — по направлению или по типу станций`
+        : ''),
     kb,
   )
 }
+
+const railUi = createRailUi({
+  render,
+  renderPhoto,
+  sess,
+  hasGeo,
+  userPt,
+  startPt,
+  formatDuration,
+})
 
 /* —— finish by length (existing wizard) —— */
 
@@ -1112,7 +1145,13 @@ async function showApproach(ctx) {
     .text('🛤 Сразу отрезок от линии', 'approach:no')
     .row()
   const back =
-    s.finishMode === 'point' ? 'finish_list' : s.finishMode === 'length' ? 'distance' : 'finish_hub'
+    s.railList?.length && s.finishMode === 'point'
+      ? 'rail_finish_list'
+      : s.finishMode === 'point'
+        ? 'finish_list'
+        : s.finishMode === 'length'
+          ? 'distance'
+          : 'finish_hub'
   addNav(kb, back)
   await render(
     ctx,
@@ -1175,19 +1214,21 @@ async function showResult(ctx) {
   }
 
   const kb = new InlineKeyboard()
+  const tgId = ctx.from?.id
+  const yUrl = (u) => trackedYandexUrl(tgId, u)
   if (needApproach && seg.approachUrl) {
-    kb.url(`🚗 Доехать до старта (${formatKm(seg.approachMeters)})`, seg.approachUrl).row()
+    kb.url(`🚗 Доехать до старта (${formatKm(seg.approachMeters)})`, yUrl(seg.approachUrl)).row()
   }
   if (legs.length > 1) {
     const show = legs.slice(0, 10)
     for (const leg of show) {
       kb.url(
         `🗺 ${leg.index + 1}/${leg.total} · ${formatKm(leg.meters)}`,
-        leg.url,
+        yUrl(leg.url),
       ).row()
     }
   } else {
-    kb.url('🗺 Открыть в Яндекс.Картах', seg.mapsUrl || legs[0]?.url).row()
+    kb.url('🗺 Открыть в Яндекс.Картах', yUrl(seg.mapsUrl || legs[0]?.url)).row()
   }
   const back =
     needApproach || (hasGeo(s) && seg.approachMeters > APPROACH_THRESHOLD_M)
@@ -1216,7 +1257,7 @@ async function showResult(ctx) {
   if (legs.length > 10) {
     const kb2 = new InlineKeyboard()
     for (const leg of legs.slice(10)) {
-      kb2.url(`🗺 ${leg.index + 1}/${leg.total} · ${formatKm(leg.meters)}`, leg.url).row()
+      kb2.url(`🗺 ${leg.index + 1}/${leg.total} · ${formatKm(leg.meters)}`, yUrl(leg.url)).row()
     }
     await ctx.reply(`Ещё участки ${11}–${legs.length}:`, { reply_markup: kb2 })
   }
@@ -1275,6 +1316,22 @@ async function go(ctx, screen) {
       return askAddressForStart(ctx)
     case 'finish_hub':
       return showFinishHub(ctx)
+    case 'donate':
+      return showDonate(ctx)
+    case 'rail_start_kind':
+      return railUi.showStartRailKind(ctx)
+    case 'rail_start_list':
+      return railUi.showStartRailList(ctx, sess(ctx.from.id).railKind || 'mck')
+    case 'rail_finish_mode':
+      return railUi.showFinishRailMode(ctx)
+    case 'rail_finish_dir':
+      return railUi.showFinishRailDirPick(ctx)
+    case 'rail_finish_type':
+      return railUi.showFinishRailTypePick(ctx)
+    case 'rail_finish_sort':
+      return railUi.showFinishRailSortPick(ctx)
+    case 'rail_finish_list':
+      return railUi.showFinishRailList(ctx)
     case 'finish_dir':
       return showDirection(ctx)
     case 'direction':
@@ -1567,6 +1624,81 @@ bot.callbackQuery('start:list', async (ctx) => {
   sess(ctx.from.id).awaitingAddress = false
   sess(ctx.from.id).page = 0
   await showStartList(ctx)
+})
+
+bot.callbackQuery('start:rail', async (ctx) => {
+  await ctx.answerCallbackQuery()
+  sess(ctx.from.id).page = 0
+  await railUi.showStartRailKind(ctx)
+})
+
+bot.callbackQuery(/^rail:kind:(mck|mcd)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  sess(ctx.from.id).page = 0
+  await railUi.showStartRailList(ctx, ctx.match[1])
+})
+
+bot.callbackQuery(/^rail:page:(\d+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  sess(ctx.from.id).page = Number(ctx.match[1])
+  await railUi.showStartRailList(ctx, sess(ctx.from.id).railKind || 'mck')
+})
+
+bot.callbackQuery(/^rail:pick:(\d+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  await railUi.showStartRailPreview(ctx, Number(ctx.match[1]))
+})
+
+bot.callbackQuery('finish:rail', async (ctx) => {
+  await ctx.answerCallbackQuery()
+  sess(ctx.from.id).page = 0
+  await railUi.showFinishRailMode(ctx)
+})
+
+bot.callbackQuery('railf:mode:dir', async (ctx) => {
+  await ctx.answerCallbackQuery()
+  await railUi.showFinishRailDirPick(ctx)
+})
+
+bot.callbackQuery('railf:mode:type', async (ctx) => {
+  await ctx.answerCallbackQuery()
+  await railUi.showFinishRailTypePick(ctx)
+})
+
+bot.callbackQuery(/^railf:dir:(cw|ccw)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  const s = sess(ctx.from.id)
+  s.direction = ctx.match[1]
+  s.page = 0
+  await railUi.showFinishRailList(ctx)
+})
+
+bot.callbackQuery(/^railf:type:(mck|D1|D2|D3|D4)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  const s = sess(ctx.from.id)
+  s.railType = ctx.match[1]
+  s.railSort = null
+  s.page = 0
+  await railUi.showFinishRailSortPick(ctx)
+})
+
+bot.callbackQuery(/^railf:sort:(dist|alpha)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  const s = sess(ctx.from.id)
+  s.railSort = ctx.match[1]
+  s.page = 0
+  await railUi.showFinishRailList(ctx)
+})
+
+bot.callbackQuery(/^railf:page:(\d+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  sess(ctx.from.id).page = Number(ctx.match[1])
+  await railUi.showFinishRailList(ctx)
+})
+
+bot.callbackQuery(/^railf:pick:(\d+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery()
+  await railUi.showFinishRailPreview(ctx, Number(ctx.match[1]))
 })
 
 bot.callbackQuery('start:confirm', async (ctx) => {
