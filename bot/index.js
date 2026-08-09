@@ -207,6 +207,62 @@ function addNav(kb, backTo) {
   return kb
 }
 
+/** Финальный экран: Назад · донат · Главная — донат всегда на виду. */
+function addResultNav(kb, backTo) {
+  kb.text('← Назад', `back:${backTo}`)
+    .text('💸', 'result:donate')
+    .text('⌂ Главная', 'nav:menu')
+  return kb
+}
+
+/** Сколько кнопок Яндекс-участков на одной странице (ниже — стрелки + нав). */
+const RESULT_LEGS_PER_PAGE = 5
+
+function resultBackTarget(s, seg, needApproach) {
+  if (needApproach || (hasGeo(s) && seg.approachMeters > APPROACH_THRESHOLD_M)) {
+    return 'approach'
+  }
+  if (s.finishMode === 'point') return 'finish_list'
+  return 'distance'
+}
+
+function buildResultKeyboard(ctx, s, seg, page = 0) {
+  const kb = new InlineKeyboard()
+  const tgId = ctx.from?.id
+  const yUrl = (u) => trackedYandexUrl(tgId, u)
+  const needApproach =
+    s.wantApproach && seg.approachUrl && seg.approachMeters > APPROACH_THRESHOLD_M
+  if (needApproach && seg.approachUrl) {
+    kb.url(`🚗 Доехать до старта (${formatKm(seg.approachMeters)})`, yUrl(seg.approachUrl)).row()
+  }
+  const legs = Array.isArray(seg.mapsLegs) ? seg.mapsLegs : []
+  if (legs.length > 1) {
+    const totalPages = Math.max(1, Math.ceil(legs.length / RESULT_LEGS_PER_PAGE))
+    const p = Math.max(0, Math.min(Number(page) || 0, totalPages - 1))
+    const from = p * RESULT_LEGS_PER_PAGE
+    const slice = legs.slice(from, from + RESULT_LEGS_PER_PAGE)
+    for (const leg of slice) {
+      kb.url(
+        `🗺 ${leg.index + 1}/${leg.total} · ${formatKm(leg.meters)}`,
+        yUrl(leg.url),
+      ).row()
+    }
+    if (totalPages > 1) {
+      const prev = p > 0 ? `rlegs:${p - 1}` : 'noop'
+      const next = p < totalPages - 1 ? `rlegs:${p + 1}` : 'noop'
+      kb.text(p > 0 ? '‹' : '·', prev)
+        .text(`${p + 1}/${totalPages}`, 'noop')
+        .text(p < totalPages - 1 ? '›' : '·', next)
+        .row()
+    }
+  } else {
+    const url = seg.mapsUrl || legs[0]?.url
+    if (url) kb.url('🗺 Открыть в Яндекс.Картах', yUrl(url)).row()
+  }
+  addResultNav(kb, resultBackTarget(s, seg, needApproach))
+  return kb
+}
+
 function truncateBtn(text, max = 64) {
   const t = String(text)
   if (t.length <= max) return t
@@ -1189,6 +1245,7 @@ async function showResult(ctx) {
     })
   }
   s.lastSeg = seg
+  s.resultLegsPage = 0
   const dir = s.direction === 'cw' ? 'по часовой' : 'против часовой'
   const needApproach =
     s.wantApproach && seg.approachUrl && seg.approachMeters > APPROACH_THRESHOLD_M
@@ -1213,30 +1270,7 @@ async function showResult(ctx) {
       `\nЯндекс — <b>${legs.length} участка</b> по порядку (так держит тропу через парки).\n`
   }
 
-  const kb = new InlineKeyboard()
-  const tgId = ctx.from?.id
-  const yUrl = (u) => trackedYandexUrl(tgId, u)
-  if (needApproach && seg.approachUrl) {
-    kb.url(`🚗 Доехать до старта (${formatKm(seg.approachMeters)})`, yUrl(seg.approachUrl)).row()
-  }
-  if (legs.length > 1) {
-    const show = legs.slice(0, 10)
-    for (const leg of show) {
-      kb.url(
-        `🗺 ${leg.index + 1}/${leg.total} · ${formatKm(leg.meters)}`,
-        yUrl(leg.url),
-      ).row()
-    }
-  } else {
-    kb.url('🗺 Открыть в Яндекс.Картах', yUrl(seg.mapsUrl || legs[0]?.url)).row()
-  }
-  const back =
-    needApproach || (hasGeo(s) && seg.approachMeters > APPROACH_THRESHOLD_M)
-      ? 'approach'
-      : s.finishMode === 'point'
-        ? 'finish_list'
-        : 'distance'
-  addNav(kb, back)
+  const kb = buildResultKeyboard(ctx, s, seg, 0)
 
   const png = await fetchRouteMapPng(seg.route, {
     routeId: s.routeId,
@@ -1252,15 +1286,17 @@ async function showResult(ctx) {
     mode: s.mode,
     legs: legs.length || 1,
   })
+}
 
-  // Остальные участки — вторым сообщением (лимит кнопок на одном)
-  if (legs.length > 10) {
-    const kb2 = new InlineKeyboard()
-    for (const leg of legs.slice(10)) {
-      kb2.url(`🗺 ${leg.index + 1}/${leg.total} · ${formatKm(leg.meters)}`, yUrl(leg.url)).row()
-    }
-    await ctx.reply(`Ещё участки ${11}–${legs.length}:`, { reply_markup: kb2 })
-  }
+/** Донат поверх результата: новое сообщение, карта с ссылками не трогаем. */
+async function replyDonateInfo(ctx) {
+  await safeAnswerCb(ctx)
+  const kb = new InlineKeyboard().text('Закрыть', 'donate:dismiss')
+  await ctx.reply(`<b>Поддержать проект 💸</b>\n\n${DONATE_CAPTION}`, {
+    parse_mode: 'HTML',
+    reply_markup: kb,
+    link_preview_options: { is_disabled: true },
+  })
 }
 
 async function afterLengthChosen(ctx) {
@@ -1519,6 +1555,43 @@ bot.callbackQuery(/^back:(.+)$/, async (ctx) => {
 
 bot.callbackQuery(/^go:(.+)$/, async (ctx) => {
   await go(ctx, ctx.match[1])
+})
+
+bot.callbackQuery(/^rlegs:(\d+)$/, async (ctx) => {
+  const s = sess(ctx.from.id)
+  const seg = s.lastSeg
+  if (!seg || s.screen !== 'result') {
+    await safeAnswerCb(ctx)
+    return
+  }
+  const page = Number(ctx.match[1]) || 0
+  s.resultLegsPage = page
+  const kb = buildResultKeyboard(ctx, s, seg, page)
+  try {
+    await ctx.editMessageReplyMarkup({ reply_markup: kb })
+  } catch {
+    /* message not modified / gone */
+  }
+  await safeAnswerCb(ctx)
+})
+
+bot.callbackQuery('result:donate', async (ctx) => {
+  await replyDonateInfo(ctx)
+})
+
+bot.callbackQuery('donate:dismiss', async (ctx) => {
+  await safeAnswerCb(ctx)
+  try {
+    if (ctx.callbackQuery?.message) {
+      await ctx.deleteMessage()
+    }
+  } catch {
+    try {
+      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } })
+    } catch {
+      /* */
+    }
+  }
 })
 
 bot.callbackQuery(/^city:(.+)$/, async (ctx) => {
