@@ -1,7 +1,7 @@
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { LatLon } from './geo'
-import { haversineM } from './geo'
+import { cumulativeM, haversineM } from './geo'
 import type { Landmark } from './data'
 
 /**
@@ -97,9 +97,79 @@ export function raiseRouteLayers(map: maplibregl.Map, ids: string[]): void {
 /**
  * SVG-линия поверх карты — DOM, работает там, где WebGL line-слои в WebView молчат (Huawei).
  */
+export type SvgEndpoint = {
+  lat: number
+  lon: number
+  label: string
+  kind: 'start' | 'end' | 'geo' | 'station'
+  /** Для станции — к какой точке на линии тянуть пунктир. */
+  linkTo?: { lat: number; lon: number }
+}
+
+export type SvgMckDot = {
+  lat: number
+  lon: number
+  name?: string
+}
+
+export type SvgMcdDot = {
+  lat: number
+  lon: number
+  name?: string
+  /** Фирменный цвет линии МЦД (D1–D4). */
+  color?: string
+  /** Подпись линии, напр. D1 или D1/D2. */
+  linesLabel?: string
+}
+
+export type SvgRouteDraw = {
+  pts: LatLon[]
+  color: string
+  width: number
+  /** Пунктир (альтернативы / не основной трек). */
+  dash?: boolean | string
+  /** Клик по линии (hit-area шире stroke). */
+  onClick?: () => void
+  /** data-id для отладки / тестов */
+  id?: string
+}
+
 export type SvgRouteHandle = {
-  setRoutes: (routes: Array<{ pts: LatLon[]; color: string; width: number }>) => void
+  setRoutes: (routes: SvgRouteDraw[], endpoints?: SvgEndpoint[]) => void
+  /** Лёгкие точки МЦК поверх подложки (в SVG — иначе уходят под оверлей линии). */
+  setMckDots: (dots: SvgMckDot[]) => void
+  onMckClick: (handler: ((dot: SvgMckDot) => void) | null) => void
+  /** Точки МЦД (цвета линий D1–D4). */
+  setMcdDots: (dots: SvgMcdDot[]) => void
+  onMcdClick: (handler: ((dot: SvgMcdDot) => void) | null) => void
+  /** Сырая геопозиция до подтверждения (синий пин поверх SVG). */
+  setPendingGeo: (pt: LatLon | null) => void
   destroy: () => void
+}
+
+/** С какого зума показываем названия МЦК (как у метро на городских картах). */
+const MCK_LABEL_MIN_ZOOM = 11.8
+
+/**
+ * Прореживание без «срезания углов»: шаг по длине вдоль линии, не каждый N-й индекс.
+ * Иначе на СВ ЗКМ (Лосиный/Яуза) 100 точек → 8 и хорда срезает выступ.
+ */
+function samplePolylineForSvg(pts: LatLon[], maxPts = 1600, maxStepM = 120): LatLon[] {
+  if (pts.length <= maxPts) return pts.slice()
+  const cum = cumulativeM(pts)
+  const total = cum[cum.length - 1] || 1
+  const stepM = Math.min(maxStepM, Math.max(40, total / (maxPts - 1)))
+  const out: LatLon[] = [pts[0]]
+  let next = stepM
+  for (let i = 1; i < pts.length - 1; i++) {
+    if (cum[i] >= next) {
+      out.push(pts[i])
+      next = cum[i] + stepM
+    }
+  }
+  const last = pts[pts.length - 1]
+  if (out.length < 2 || haversineM(out[out.length - 1], last) > 1) out.push(last)
+  return out
 }
 
 export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteHandle {
@@ -110,12 +180,22 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
     svg.setAttribute('class', 'mp-route-svg')
     host.appendChild(svg)
   }
-  let routes: Array<{ pts: LatLon[]; color: string; width: number }> = []
+  let routes: SvgRouteDraw[] = []
+  let endpoints: SvgEndpoint[] = []
+  let mckDots: SvgMckDot[] = []
+  let mckClick: ((dot: SvgMckDot) => void) | null = null
+  let pinnedMckName: string | null = null
+  let mcdDots: SvgMcdDot[] = []
+  let mcdClick: ((dot: SvgMcdDot) => void) | null = null
+  let pinnedMcdKey: string | null = null
+  let pendingGeo: LatLon | null = null
 
   const redraw = (): void => {
     if (!svg) return
     const w = host.clientWidth || 1
     const h = host.clientHeight || 1
+    const zoom = map.getZoom()
+    const showLabels = zoom >= MCK_LABEL_MIN_ZOOM
     svg.setAttribute('width', String(w))
     svg.setAttribute('height', String(h))
     svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
@@ -123,16 +203,14 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
 
     for (const r of routes) {
       if (r.pts.length < 2) continue
-      const sampled =
-        r.pts.length > 240
-          ? r.pts.filter((_, i) => i === 0 || i === r.pts.length - 1 || i % Math.ceil(r.pts.length / 220) === 0)
-          : r.pts
+      const sampled = samplePolylineForSvg(r.pts)
       const d = sampled
         .map((p, i) => {
           const xy = map.project([p.lon, p.lat])
           return `${i === 0 ? 'M' : 'L'}${xy.x.toFixed(1)} ${xy.y.toFixed(1)}`
         })
         .join(' ')
+      const dash = r.dash === true ? '11 9' : typeof r.dash === 'string' ? r.dash : ''
       for (const [col, sw] of [
         ['#ffffff', r.width + 7],
         [r.color, r.width],
@@ -144,9 +222,273 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
         path.setAttribute('stroke-width', String(sw))
         path.setAttribute('stroke-linecap', 'round')
         path.setAttribute('stroke-linejoin', 'round')
-        path.setAttribute('opacity', col === '#ffffff' ? '0.9' : '1')
+        path.setAttribute('opacity', col === '#ffffff' ? (dash ? '0.55' : '0.9') : dash ? '0.92' : '1')
+        if (dash) path.setAttribute('stroke-dasharray', dash)
+        if (r.id) path.setAttribute('data-route-id', r.id)
+        path.style.pointerEvents = 'none'
         svg.appendChild(path)
       }
+      if (r.onClick) {
+        const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        hit.setAttribute('d', d)
+        hit.setAttribute('fill', 'none')
+        hit.setAttribute('stroke', 'transparent')
+        hit.setAttribute('stroke-width', String(Math.max(22, r.width + 16)))
+        hit.setAttribute('stroke-linecap', 'round')
+        hit.setAttribute('stroke-linejoin', 'round')
+        hit.style.cursor = 'pointer'
+        hit.style.pointerEvents = 'auto'
+        if (r.id) hit.setAttribute('data-route-hit', r.id)
+        hit.addEventListener('click', (ev) => {
+          ev.stopPropagation()
+          r.onClick?.()
+        })
+        svg.appendChild(hit)
+      }
+    }
+
+    // МЦК / МЦД: точки + подписи при достаточном зуме (с антиколлизией)
+    type Placed = { x: number; y: number; w: number; h: number }
+    const occupied: Placed[] = []
+    const labelH = 18
+    const overlaps = (a: Placed, b: Placed) =>
+      !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y)
+
+    const drawRailDot = (opts: {
+      lat: number
+      lon: number
+      name: string
+      label: string
+      color: string
+      cls: string
+      pinned: boolean
+      onClick: () => void
+    }) => {
+      const xy = map.project([opts.lon, opts.lat])
+      if (xy.x < -20 || xy.y < -20 || xy.x > w + 20 || xy.y > h + 20) return
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      g.setAttribute('class', opts.cls)
+      if (opts.name) g.setAttribute('data-name', opts.name)
+      g.style.cursor = 'pointer'
+      g.style.pointerEvents = 'auto'
+
+      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      hit.setAttribute('cx', String(xy.x))
+      hit.setAttribute('cy', String(xy.y))
+      hit.setAttribute('r', '14')
+      hit.setAttribute('fill', 'transparent')
+      g.appendChild(hit)
+
+      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      halo.setAttribute('cx', String(xy.x))
+      halo.setAttribute('cy', String(xy.y))
+      halo.setAttribute('r', '6')
+      halo.setAttribute('fill', opts.color)
+      halo.setAttribute('opacity', '0.2')
+      halo.style.pointerEvents = 'none'
+      g.appendChild(halo)
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      dot.setAttribute('cx', String(xy.x))
+      dot.setAttribute('cy', String(xy.y))
+      dot.setAttribute('r', '3.4')
+      dot.setAttribute('fill', opts.color)
+      dot.setAttribute('opacity', '0.82')
+      dot.setAttribute('stroke', 'rgba(255,255,255,0.9)')
+      dot.setAttribute('stroke-width', '1.2')
+      dot.style.pointerEvents = 'none'
+      g.appendChild(dot)
+
+      if (opts.name && (showLabels || opts.pinned)) {
+        const text = opts.label
+        const approxW = Math.min(210, Math.max(72, 18 + text.length * 6.2))
+        const boxX = xy.x - approxW / 2
+        const boxY = xy.y - 28
+        const box: Placed = { x: boxX, y: boxY, w: approxW, h: labelH }
+        const collides = !opts.pinned && occupied.some((o) => overlaps(box, o))
+        if (!collides && boxX > 2 && boxY > 2 && boxX + approxW < w - 2) {
+          occupied.push(box)
+          const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+          bg.setAttribute('x', String(boxX))
+          bg.setAttribute('y', String(boxY))
+          bg.setAttribute('width', String(approxW))
+          bg.setAttribute('height', String(labelH))
+          bg.setAttribute('rx', '6')
+          bg.setAttribute('fill', '#fffef8')
+          bg.setAttribute('stroke', opts.color)
+          bg.setAttribute('stroke-width', '1')
+          bg.setAttribute('opacity', '0.96')
+          bg.style.pointerEvents = 'none'
+          g.appendChild(bg)
+          const t = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+          t.setAttribute('x', String(xy.x))
+          t.setAttribute('y', String(boxY + 12.5))
+          t.setAttribute('text-anchor', 'middle')
+          t.setAttribute('fill', '#2a1520')
+          t.setAttribute('font-size', '11')
+          t.setAttribute('font-weight', '700')
+          t.setAttribute('font-family', 'system-ui, -apple-system, Segoe UI, sans-serif')
+          t.style.pointerEvents = 'none'
+          t.textContent = text
+          g.appendChild(t)
+        }
+      }
+
+      g.addEventListener('click', (ev) => {
+        ev.stopPropagation()
+        opts.onClick()
+      })
+      svg!.appendChild(g)
+    }
+
+    for (const m of mckDots) {
+      const name = (m.name || '').trim()
+      drawRailDot({
+        lat: m.lat,
+        lon: m.lon,
+        name,
+        label: `МЦК · ${name}`,
+        color: '#de64a1',
+        cls: 'mp-mck-dot',
+        pinned: !!pinnedMckName && name === pinnedMckName,
+        onClick: () => {
+          pinnedMckName = name || null
+          pinnedMcdKey = null
+          redraw()
+          mckClick?.(m)
+        },
+      })
+    }
+
+    for (const m of mcdDots) {
+      const name = (m.name || '').trim()
+      const lines = (m.linesLabel || 'МЦД').trim()
+      const color = m.color || '#40B280'
+      const key = `${lines}|${name}`
+      drawRailDot({
+        lat: m.lat,
+        lon: m.lon,
+        name,
+        label: `${lines} · ${name}`,
+        color,
+        cls: 'mp-mcd-dot',
+        pinned: !!pinnedMcdKey && key === pinnedMcdKey,
+        onClick: () => {
+          pinnedMcdKey = key
+          pinnedMckName = null
+          redraw()
+          mcdClick?.(m)
+        },
+      })
+    }
+
+    // Точки поверх линии (MapLibre Marker оказывается под SVG-оверлеем)
+    const drawLink = (from: LatLon, to: LatLon) => {
+      const a = map.project([from.lon, from.lat])
+      const b = map.project([to.lon, to.lat])
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+      line.setAttribute('x1', String(a.x))
+      line.setAttribute('y1', String(a.y))
+      line.setAttribute('x2', String(b.x))
+      line.setAttribute('y2', String(b.y))
+      line.setAttribute('stroke', '#de64a1')
+      line.setAttribute('stroke-width', '2.5')
+      line.setAttribute('stroke-dasharray', '6 5')
+      line.setAttribute('stroke-opacity', '0.9')
+      line.setAttribute('class', 'mp-rail-link')
+      svg!.appendChild(line)
+    }
+
+    const drawEndpoint = (ep: SvgEndpoint) => {
+      if (ep.kind === 'station' && ep.linkTo) {
+        drawLink({ lat: ep.lat, lon: ep.lon }, ep.linkTo)
+      }
+      const xy = map.project([ep.lon, ep.lat])
+      const fill =
+        ep.kind === 'start'
+          ? '#1f8f4a'
+          : ep.kind === 'geo'
+            ? '#2563eb'
+            : ep.kind === 'station'
+              ? '#de64a1'
+              : '#d32f2f'
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      g.setAttribute('class', `mp-ep mp-ep-${ep.kind}`)
+
+      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      halo.setAttribute('cx', String(xy.x))
+      halo.setAttribute('cy', String(xy.y))
+      halo.setAttribute('r', ep.kind === 'geo' ? '16' : ep.kind === 'station' ? '13' : '14')
+      halo.setAttribute('fill', '#fff')
+      halo.setAttribute('opacity', '0.95')
+      g.appendChild(halo)
+
+      if (ep.kind === 'geo') {
+        const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+        pulse.setAttribute('cx', String(xy.x))
+        pulse.setAttribute('cy', String(xy.y))
+        pulse.setAttribute('r', '18')
+        pulse.setAttribute('fill', '#2563eb')
+        pulse.setAttribute('opacity', '0.22')
+        g.appendChild(pulse)
+      }
+
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      dot.setAttribute('cx', String(xy.x))
+      dot.setAttribute('cy', String(xy.y))
+      dot.setAttribute('r', ep.kind === 'station' ? '8' : '9')
+      dot.setAttribute('fill', fill)
+      dot.setAttribute('stroke', '#fff')
+      dot.setAttribute('stroke-width', '2.5')
+      g.appendChild(dot)
+
+      const label = (
+        ep.label ||
+        (ep.kind === 'start'
+          ? 'Старт'
+          : ep.kind === 'geo'
+            ? 'Вы здесь'
+            : ep.kind === 'station'
+              ? 'Станция'
+              : 'Финиш')
+      ).slice(0, 42)
+      const approxW = Math.min(220, Math.max(56, 14 + label.length * 7.2))
+      const boxH = 22
+      const boxX = xy.x - approxW / 2
+      const boxY = xy.y - 36
+
+      const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+      bg.setAttribute('x', String(boxX))
+      bg.setAttribute('y', String(boxY))
+      bg.setAttribute('width', String(approxW))
+      bg.setAttribute('height', String(boxH))
+      bg.setAttribute('rx', '8')
+      bg.setAttribute('fill', ep.kind === 'station' ? 'rgba(255,254,248,0.96)' : 'rgba(18,20,18,0.92)')
+      bg.setAttribute('stroke', fill)
+      bg.setAttribute('stroke-width', '1.5')
+      g.appendChild(bg)
+
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      text.setAttribute('x', String(xy.x))
+      text.setAttribute('y', String(boxY + 15))
+      text.setAttribute('text-anchor', 'middle')
+      text.setAttribute('fill', ep.kind === 'station' ? '#2a1520' : '#f0f2f0')
+      text.setAttribute('font-size', '12')
+      text.setAttribute('font-weight', '700')
+      text.setAttribute('font-family', 'system-ui, -apple-system, Segoe UI, sans-serif')
+      text.textContent = label
+      g.appendChild(text)
+
+      svg!.appendChild(g)
+    }
+
+    for (const ep of endpoints) drawEndpoint(ep)
+    if (pendingGeo) {
+      drawEndpoint({
+        lat: pendingGeo.lat,
+        lon: pendingGeo.lon,
+        label: 'Вы здесь',
+        kind: 'geo',
+      })
     }
   }
 
@@ -157,8 +499,34 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
   map.on('render', onMove)
 
   return {
-    setRoutes: (next) => {
+    setRoutes: (next, nextEnds) => {
       routes = next
+      endpoints = nextEnds || []
+      redraw()
+    },
+    setMckDots: (dots) => {
+      mckDots = dots || []
+      if (pinnedMckName && !mckDots.some((d) => d.name === pinnedMckName)) pinnedMckName = null
+      redraw()
+    },
+    onMckClick: (handler) => {
+      mckClick = handler
+    },
+    setMcdDots: (dots) => {
+      mcdDots = dots || []
+      if (
+        pinnedMcdKey &&
+        !mcdDots.some((d) => `${(d.linesLabel || 'МЦД').trim()}|${(d.name || '').trim()}` === pinnedMcdKey)
+      ) {
+        pinnedMcdKey = null
+      }
+      redraw()
+    },
+    onMcdClick: (handler) => {
+      mcdClick = handler
+    },
+    setPendingGeo: (pt) => {
+      pendingGeo = pt
       redraw()
     },
     destroy: () => {

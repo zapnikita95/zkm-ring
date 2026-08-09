@@ -1,33 +1,21 @@
 import { defineConfig } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
 
+/** PWA/SW в dev часто даёт «Failed to fetch» на /data — для прототипа сайта не нужен. */
 export default defineConfig({
-  plugins: [
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'data/*.json', 'data/*.geojson'],
-      manifest: {
-        name: 'Зелёный Маршрут',
-        short_name: 'Зелёный Маршрут',
-        description: 'Ваш кусок Зелёного кольца Москвы: пешком или на велосипеде',
-        theme_color: '#121412',
-        background_color: '#121412',
-        display: 'standalone',
-        orientation: 'portrait',
-        lang: 'ru',
-        start_url: '/',
-        icons: [
-          {
-            src: 'icons/app-icon.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        site: 'site/index.html',
+        about: 'site/about.html',
       },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,json,geojson,png,ico}'],
-      },
-    }),
-  ],
+    },
+  },
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true,
+  },
+  // geojson из public/ можно импортировать при необходимости
+  assetsInclude: ['**/*.geojson'],
 })

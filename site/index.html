@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#121412" />
+    <title>Зелёный Маршрут — отрезок Зелёного кольца и велотреков в Яндекс.Картах</title>
+    <meta
+      name="description"
+      content="Соберите кусок готового трека: Зелёное кольцо Москвы, ВЕЛО1, маршруты Подмосковья и других городов. Старт и финиш где удобно — откройте в Яндекс.Картах. Без Strava и Komoot."
+    />
+    <meta
+      name="keywords"
+      content="зелёное кольцо москвы, веломаршрут москва, зелёный маршрут, отрезок маршрута яндекс карты"
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href="https://green-route.ru/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content="Зелёный Маршрут" />
+    <meta
+      property="og:title"
+      content="Зелёный Маршрут — приятный кусок пути в Яндекс.Картах"
+    />
+    <meta
+      property="og:description"
+      content="Готовый трек → старт и финиш где удобно → привычный навигатор. Для тех, кто гуляет и катается по случаю."
+    />
+    <meta property="og:url" content="https://green-route.ru/" />
+    <meta property="og:image" content="https://green-route.ru/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Зелёный Маршрут" />
+    <meta
+      name="twitter:description"
+      content="Отрезок Зелёного кольца и велотреков — в Яндекс.Картах за минуту."
+    />
+    <meta name="twitter:image" content="https://green-route.ru/og-cover.png" />
+    <meta name="google-site-verification" content="38qbxfbjeoFr9j1HY__bSWC1vKOb_AP2xxcZB1J_d6g" />
+    <meta name="yandex-verification" content="888c9cd52a0fdf02" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon-64.png" />
+    <link rel="apple-touch-icon" href="/icons/app-icon.png" />
+    <link rel="stylesheet" href="./style.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Зелёный Маршрут",
+        "url": "https://green-route.ru/",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "inLanguage": "ru-RU",
+        "description": "Соберите отрезок по Зелёному кольцу Москвы и другим готовым трекам и откройте в Яндекс.Картах.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "RUB"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Зелёный Маршрут",
+          "url": "https://green-route.ru/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root" class="shell">
+      <header class="top">
+        <a class="brand" href="/about" title="О проекте">
+          <img class="brand-ico" src="/icons/app-icon.png" width="40" height="40" alt="" />
+          <div class="brand-text">
+            <h1>Зелёный Маршрут</h1>
+            <p id="top-sub">Трек → старт → финиш → карты</p>
+          </div>
+        </a>
+        <div class="top-actions">
+          <button type="button" class="top-chip top-desktop-only" id="btn-city-top" title="Сменить город">
+            <span class="top-chip-ico" aria-hidden="true">🏙️</span>
+            <span class="top-chip-label" id="btn-city-top-label">Москва</span>
+            <span class="top-chip-caret" aria-hidden="true">▾</span>
+          </button>
+          <button type="button" class="top-chip top-desktop-only" id="btn-get-app" title="Скачать приложение">
+            <span class="top-chip-ico" aria-hidden="true">📱</span>
+            <span class="top-chip-label">Приложение</span>
+          </button>
+          <a
+            class="top-tg"
+            href="https://t.me/zelenoe_koltso_bot"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Telegram-бот"
+            aria-label="Открыть Telegram-бот"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+              <path
+                fill="currentColor"
+                d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+              />
+            </svg>
+          </a>
+          <div class="mode-seg" role="group" aria-label="Режим">
+            <button type="button" data-mode="bike" class="active">🚲 Вело</button>
+            <button type="button" data-mode="walk">🚶 Пешком</button>
+          </div>
+          <button type="button" class="top-chip top-chip-auth top-desktop-only" id="btn-open-auth-top">Войти</button>
+        </div>
+      </header>
+
+      <div class="stage" id="stage">
+        <div class="map-pane">
+          <button type="button" class="btn-map-size" id="btn-map-size" title="Свернуть карту" aria-label="Свернуть или развернуть карту" hidden>▴</button>
+          <div id="map" aria-label="Карта маршрута"></div>
+          <div class="map-legend" id="map-legend">Зелёная линия — весь трек</div>
+        </div>
+
+        <aside class="panel" id="panel">
+          <div class="steps" id="steps" aria-hidden="true"></div>
+          <div id="panel-body" class="panel-body">
+            <div class="boot">Загружаем треки…</div>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <noscript>
+      <div style="padding: 16px; max-width: 640px; margin: 0 auto; font-family: system-ui, sans-serif">
+        <h2>Зелёный Маршрут</h2>
+        <p>
+          Соберите отрезок по Зелёному кольцу Москвы и другим готовым трекам, затем откройте его в
+          Яндекс.Картах. Для работы нужен JavaScript.
+        </p>
+        <p>
+          <a href="/zelenoe-kolco-moskvy">Зелёное кольцо Москвы</a> ·
+          <a href="/velo-moskva">Веломаршруты Москвы</a> ·
+          <a href="/about">О проекте</a>
+        </p>
+      </div>
+    </noscript>
+    <script src="/yandex-metrika.js"></script>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

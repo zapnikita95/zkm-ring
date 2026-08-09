@@ -867,8 +867,8 @@
         "category": "park",
         "description": "Лесопарк академии · линия по Верхней аллее (Зелёное кольцо)",
         "radius_m": 120,
-        "trackIndex": 5448,
-        "ringIndex": 5448,
+        "trackIndex": 5346,
+        "ringIndex": 5346,
         "snapDist_m": 0,
         "orderCw": 39,
         "orderCcw": 0
@@ -876,8 +876,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          37.55965994899686,
-          55.83254955351675
+          37.55981090445438,
+          55.832573664386054
         ]
       }
     },
