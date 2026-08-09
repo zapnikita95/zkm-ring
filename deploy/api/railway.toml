@@ -1,0 +1,10 @@
+# Linked only to service zeleny-api (Config-as-code path: deploy/api/railway.toml)
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "deploy/api/Dockerfile"
+
+[deploy]
+startCommand = "node index.js"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"

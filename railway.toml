@@ -1,11 +1,10 @@
-# Default for GitHub → service zeleny-api (repo-linked).
-# green-route-web overrides via RAILWAY_DOCKERFILE_PATH=deploy/web/Dockerfile
+# green-route-web (CLI `railway up` / default).
+# zeleny-api must NOT use this file — see deploy/api/railway.toml
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "deploy/api/Dockerfile"
+dockerfilePath = "deploy/web/Dockerfile"
 
 [deploy]
-startCommand = "node index.js"
-healthcheckPath = "/api/health"
+healthcheckPath = "/"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
