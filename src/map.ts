@@ -355,7 +355,7 @@ export function wireSvgRoutes(map: maplibregl.Map, host: HTMLElement): SvgRouteH
     }
 
     const drawEndpoint = (ep: SvgEndpoint) => {
-      if (ep.kind === 'station' && ep.linkTo) {
+      if (ep.linkTo) {
         drawLink({ lat: ep.lat, lon: ep.lon }, ep.linkTo)
       }
       const xy = map.project([ep.lon, ep.lat])

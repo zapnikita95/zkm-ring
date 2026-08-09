@@ -127,6 +127,14 @@ const state = {
   /** Сырая гео до подтверждения «Вы находитесь тут?» (только кнопка «Гео» → старт на линии) */
   pendingGeo: null as LatLon | null,
   geoConfirmFor: null as null | 'start',
+  /** Откуда доезд до старта (карта + кнопка Яндекс). */
+  approachFrom: null as null | {
+    kind: 'geo' | 'mck' | 'mcd'
+    name: string
+    lat: number
+    lon: number
+    badge: string
+  },
   /** Последняя геопозиция пользователя (для «Доехать до старта») */
   userGeo: null as LatLon | null,
   /** false = длина не выбрана — можно кликнуть по линии на карте */
@@ -1626,11 +1634,30 @@ function initMap() {
   void ensureRailStationsLoaded()
 }
 
-function fitTo(pts: LatLon[], pad = 48) {
+function fitTo(pts: LatLon[], pad = 48, maxZoom = 14) {
   if (!map || pts.length < 2) return
   const b = new maplibregl.LngLatBounds([pts[0].lon, pts[0].lat], [pts[0].lon, pts[0].lat])
   for (const p of pts) b.extend([p.lon, p.lat])
-  map.fitBounds(b, { padding: pad, maxZoom: 14, duration: 550 })
+  map.fitBounds(b, { padding: pad, maxZoom, duration: 550 })
+}
+
+/** Весь отрезок (+ станции МЦК/МЦД) в кадре. На шаге «Карты» — сильнее отдаляем. */
+function fitActiveRoute() {
+  if (state.segment.length < 2) return
+  const pts: LatLon[] = state.segment.slice()
+  for (const p of [state.start, state.end]) {
+    if (p?.stationLat != null && p.stationLon != null) {
+      pts.push({ lat: p.stationLat, lon: p.stationLon })
+    }
+  }
+  if (state.step === 'maps') {
+    // узкая карта на мобилке (~34vh) — padding меньше в px, maxZoom ниже
+    fitTo(pts, 24, 11.5)
+  } else if (state.step === 'confirm') {
+    fitTo(pts, 44, 12.8)
+  } else {
+    fitTo(pts, 56, 14)
+  }
 }
 
 function markerEl(kind: 'start' | 'end') {
@@ -1808,6 +1835,30 @@ function paintMap() {
   if (state.step === 'finish' && state.start?.stationLat != null && state.end?.stationLat == null) {
     // на финише без своей станции оставить видимым старт-станцию не нужно
   }
+  // Доезд до старта: станция / гео → старт (пунктир)
+  if (
+    state.approachFrom &&
+    state.start &&
+    (state.step === 'confirm' || state.step === 'maps' || state.step === 'finish')
+  ) {
+    if (state.approachFrom.kind === 'geo') {
+      ends.push({
+        lat: state.approachFrom.lat,
+        lon: state.approachFrom.lon,
+        label: 'Вы',
+        kind: 'geo',
+        linkTo: { lat: state.start.lat, lon: state.start.lon },
+      })
+    } else {
+      ends.push({
+        lat: state.approachFrom.lat,
+        lon: state.approachFrom.lon,
+        label: shortRailName(`${state.approachFrom.badge} · ${state.approachFrom.name}`),
+        kind: 'station',
+        linkTo: { lat: state.start.lat, lon: state.start.lon },
+      })
+    }
+  }
 
   svgRoutes.setRoutes(routes, ends)
   applyMckDotsToSvg()
@@ -1819,9 +1870,12 @@ function paintMap() {
       : state.start?.stationLat != null
         ? state.start
         : null
-  if (railFocus?.stationLat != null && railFocus.stationLon != null) {
-    // камеру для пары станция↔линия задаёт applyRailSelection; тут не сбивать fit всего трека
-  } else if (hasSeg) fitTo(state.segment, 56)
+  // На подтверждении / картах всегда весь отрезок в кадре (не залипать на станции МЦД)
+  if ((state.step === 'maps' || state.step === 'confirm') && hasSeg) {
+    fitActiveRoute()
+  } else if (railFocus?.stationLat != null && railFocus.stationLon != null) {
+    // выбор старта/финиша от рельс — камеру задаёт applyRailSelection
+  } else if (hasSeg) fitActiveRoute()
   else if (state.step === 'finish' && state.track.length >= 2) fitTo(state.track, 48)
   else if (!state.start && state.track.length >= 2) fitTo(state.track, 40)
   updateLegend()
@@ -2598,9 +2652,44 @@ function viewFinish() {
 
 function shareSaveRow() {
   return `<div class="icon-row">
-    <button type="button" class="btn-icon" id="btn-share-plan" title="Поделиться">🔗 Поделиться</button>
-    <button type="button" class="btn-icon" id="btn-save-plan" title="Сохранить">💾 Сохранить</button>
+    <button type="button" class="btn-icon" id="btn-share-plan" title="Поделиться"><span class="btn-icon-emoji" aria-hidden="true">🔗</span><span class="btn-icon-label">Поделиться</span></button>
+    <button type="button" class="btn-icon" id="btn-save-plan" title="Сохранить"><span class="btn-icon-emoji" aria-hidden="true">💾</span><span class="btn-icon-label">Сохранить</span></button>
+    <button type="button" class="btn-icon btn-icon-donate" id="btn-donate-plan" title="Поддержать"><span class="btn-icon-emoji" aria-hidden="true">🪙</span><span class="btn-icon-label">Поддержать</span></button>
   </div>`
+}
+
+function showDonateModal() {
+  const existing = document.getElementById('donate-modal')
+  if (existing) existing.remove()
+  const wrap = document.createElement('div')
+  wrap.id = 'donate-modal'
+  wrap.className = 'auth-modal'
+  wrap.innerHTML = `<div class="auth-card">
+    <button type="button" class="modal-x" id="donate-close" aria-label="Закрыть">✕</button>
+    <h3>💛 Поддержать</h3>
+    <p class="lead">Спасибо, что решили поддержать мой проект!</p>
+    <p class="lead tiny">
+      Он полностью бесплатный. Если хотите выразить благодарность — можете отправить любую сумму
+      через Т‑Банк по номеру:
+    </p>
+    <p class="donate-phone">
+      <a href="tel:+79776134508">+7-977-613-45-08</a>
+    </p>
+    <div class="nav-stack" style="margin-top:14px">
+      <button type="button" class="btn secondary" id="donate-ok">Понятно</button>
+    </div>
+  </div>`
+  document.body.appendChild(wrap)
+  document.body.style.overflow = 'hidden'
+  const close = () => {
+    wrap.remove()
+    document.body.style.overflow = ''
+  }
+  wrap.querySelector('#donate-close')?.addEventListener('click', close)
+  wrap.querySelector('#donate-ok')?.addEventListener('click', close)
+  wrap.addEventListener('click', (e) => {
+    if (e.target === wrap) close()
+  })
 }
 
 function viewConfirm() {
@@ -2744,16 +2833,19 @@ function showApproachChooser() {
   const wrap = document.createElement('div')
   wrap.id = 'approach-modal'
   wrap.className = 'auth-modal'
-  const mckBtn = showMckOnMap()
-    ? `<button type="button" class="btn" id="approach-from-mck">🚇 От МЦК</button>`
+  const rail = showMckOnMap()
+  const railBtns = rail
+    ? `<button type="button" class="btn" id="approach-from-mck">🚇 МЦК</button>
+       <button type="button" class="btn" id="approach-from-mcd">🚆 МЦД</button>
+       <button type="button" class="btn" id="approach-from-both">🚇/🚆 МЦК / МЦД</button>`
     : ''
   wrap.innerHTML = `<div class="auth-card">
     <button type="button" class="modal-x" id="approach-close" aria-label="Закрыть">✕</button>
     <h3>Доехать до старта</h3>
     <p class="lead tiny">Откуда построить маршрут в Яндекс.Картах?</p>
     <div class="nav-stack" style="margin-top:12px">
-      ${mckBtn}
-      <button type="button" class="btn secondary" id="approach-from-geo">📍 От текущего положения</button>
+      ${railBtns}
+      <button type="button" class="btn secondary" id="approach-from-geo">📍 Текущее положение</button>
     </div>
   </div>`
   document.body.appendChild(wrap)
@@ -2767,7 +2859,15 @@ function showApproachChooser() {
   })
   wrap.querySelector('#approach-from-mck')?.addEventListener('click', () => {
     closeApproachModal()
-    void showMckStationPicker()
+    void showApproachStationPicker('mck')
+  })
+  wrap.querySelector('#approach-from-mcd')?.addEventListener('click', () => {
+    closeApproachModal()
+    void showApproachStationPicker('mcd')
+  })
+  wrap.querySelector('#approach-from-both')?.addEventListener('click', () => {
+    closeApproachModal()
+    void showApproachStationPicker('both')
   })
 }
 
@@ -2778,39 +2878,75 @@ async function openApproachFromGeo() {
     alert(state.geoStatus.includes('гео') ? state.geoStatus : 'Не удалось получить геопозицию')
     return
   }
+  state.approachFrom = {
+    kind: 'geo',
+    name: 'Геопозиция',
+    lat: geo.lat,
+    lon: geo.lon,
+    badge: 'гео',
+  }
+  paintMap()
   window.open(yandexApproachUrl(geo, { lat: state.start.lat, lon: state.start.lon }), '_blank', 'noopener')
 }
 
-async function showMckStationPicker() {
+async function showApproachStationPicker(kind: 'mck' | 'mcd' | 'both') {
   if (!state.start) return
   closeApproachModal()
-  let stations: MckStation[] = []
   try {
-    await ensureMckStationsLoaded()
-    stations = filterRailStationsForRoute(mckStationsCache)
+    await ensureRailStationsLoaded()
   } catch {
-    alert('Не удалось загрузить станции МЦК')
+    alert('Не удалось загрузить станции')
     return
   }
-  if (!stations.length) {
-    toast('Рядом с маршрутом нет станций МЦК')
+  type Row = { id: string; name: string; lat: number; lon: number; badge: string; kind: 'mck' | 'mcd'; distM: number }
+  let rows: Row[] = []
+  if (kind === 'mck' || kind === 'both') {
+    for (const s of filterRailStationsForRoute(mckStationsCache)) {
+      rows.push({
+        id: s.id,
+        name: s.name,
+        lat: s.lat,
+        lon: s.lon,
+        badge: 'МЦК',
+        kind: 'mck',
+        distM: 0,
+      })
+    }
+  }
+  if (kind === 'mcd' || kind === 'both') {
+    for (const s of filterRailStationsForRoute(mcdStationsCache)) {
+      rows.push({
+        id: s.id,
+        name: s.name,
+        lat: s.lat,
+        lon: s.lon,
+        badge: mcdLinesLabel(s),
+        kind: 'mcd',
+        distM: 0,
+      })
+    }
+  }
+  rows = stationsNearStart(rows, state.start)
+  if (!rows.length) {
+    toast('Рядом с маршрутом нет подходящих станций')
+    showApproachChooser()
     return
   }
-  const ranked = stationsNearStart(stations, state.start)
+  const title = kind === 'mck' ? 'МЦК' : kind === 'mcd' ? 'МЦД' : 'МЦК / МЦД'
   const wrap = document.createElement('div')
   wrap.id = 'approach-modal'
   wrap.className = 'auth-modal'
-  const list = ranked
+  const list = rows
     .map(
-      (s, i) => `<button type="button" class="mck-pick-btn" data-mck="${s.id}" data-idx="${i}">
-        <span class="t">МЦК · ${escapeHtml(s.name)}</span>
+      (s, i) => `<button type="button" class="mck-pick-btn" data-idx="${i}">
+        <span class="t">${escapeHtml(s.badge)} · ${escapeHtml(s.name)}</span>
         <span class="s">${formatMckDist(s.distM)} до старта</span>
       </button>`,
     )
     .join('')
   wrap.innerHTML = `<div class="auth-card auth-card-wide">
     <button type="button" class="modal-x" id="approach-close" aria-label="Закрыть">✕</button>
-    <h3>Станция МЦК</h3>
+    <h3>Станция ${escapeHtml(title)}</h3>
     <p class="lead tiny">Ближе к старту «${escapeHtml(state.start.name || 'точка')}» — выше в списке.</p>
     <div class="mck-pick-list">${list}</div>
     <button type="button" class="btn secondary sm" id="approach-back-chooser" style="margin-top:10px;width:100%">← Назад</button>
@@ -2824,12 +2960,20 @@ async function showMckStationPicker() {
     closeApproachModal()
     showApproachChooser()
   })
-  wrap.querySelectorAll('[data-mck]').forEach((btn) => {
+  wrap.querySelectorAll('[data-idx]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const idx = Number((btn as HTMLElement).dataset.idx)
-      const st = ranked[idx]
+      const st = rows[idx]
       if (!st || !state.start) return
       closeApproachModal()
+      state.approachFrom = {
+        kind: st.kind,
+        name: st.name,
+        lat: st.lat,
+        lon: st.lon,
+        badge: st.badge,
+      }
+      paintMap()
       window.open(
         yandexApproachUrl({ lat: st.lat, lon: st.lon }, { lat: state.start.lat, lon: state.start.lon }),
         '_blank',
@@ -3032,8 +3176,7 @@ function wirePanel() {
 
   $('#btn-approach-start')?.addEventListener('click', () => {
     if (!state.start) return
-    if (showMckOnMap()) showApproachChooser()
-    else void openApproachFromGeo()
+    showApproachChooser()
   })
 
   const addrInput = document.getElementById('addr-input') as HTMLInputElement | null
@@ -3351,6 +3494,7 @@ function wirePanel() {
 
   $('#btn-share-plan')?.addEventListener('click', () => void shareCurrentPlan())
   $('#btn-save-plan')?.addEventListener('click', () => requestSavePlan())
+  $('#btn-donate-plan')?.addEventListener('click', () => showDonateModal())
 
   document.querySelectorAll('[data-focus-lm]').forEach((btn) => {
     btn.addEventListener('click', () => {

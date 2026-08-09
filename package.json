@@ -5,14 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "seo": "python3 scripts/build_seo_pages.py",
+    "build": "python3 scripts/build_seo_pages.py && tsc && vite build",
     "preview": "vite preview",
     "import-gpx": "python3 scripts/import_gpx.py",
     "server": "npm --prefix server start",
-    "android:sync": "npm run build && npx cap sync android",
-    "android:apk": "cd android && ./gradlew assembleDebug",
-    "ios:sync": "npm run build && npx cap sync ios",
-    "ios:open": "npx cap open ios"
+    "android:sync": "npm run mobile:www && npx cap sync android",
+    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "ios:sync": "npm run mobile:www && npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "mobile:www": "npm run build && cp dist/site/index.html dist/index.html"
   },
   "devDependencies": {
     "playwright": "^1.62.1",
