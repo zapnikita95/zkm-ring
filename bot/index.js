@@ -35,7 +35,14 @@ import {
   difficultiesForTrackM,
   difficultyRangeM,
 } from './lib/wizard.js'
-import { DONATE_CAPTION, railAvailable } from './lib/rail.js'
+import {
+  DONATE_CAPTION,
+  allStationsForRoute,
+  railAvailable,
+  stationBadge,
+  stationsForRoute,
+} from './lib/rail.js'
+import { yandexApproachUrl } from './lib/yandex.js'
 import { createRailUi } from './lib/rail_ui.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -207,33 +214,68 @@ function addNav(kb, backTo) {
   return kb
 }
 
-/** Финальный экран: Назад · донат · Главная — донат всегда на виду. */
+/** Финальный экран: Назад · Главная · донат — донат всегда на виду. */
 function addResultNav(kb, backTo) {
   kb.text('← Назад', `back:${backTo}`)
-    .text('💸', 'result:donate')
     .text('⌂ Главная', 'nav:menu')
+    .text('💸', 'result:donate')
   return kb
 }
 
 /** Сколько кнопок Яндекс-участков на одной странице (ниже — стрелки + нав). */
 const RESULT_LEGS_PER_PAGE = 5
 
-function resultBackTarget(s, seg, needApproach) {
-  if (needApproach || (hasGeo(s) && seg.approachMeters > APPROACH_THRESHOLD_M)) {
+function resultBackTarget(s) {
+  if (s.wantApproach) {
+    if (s.approachOrigin) return 'approach_via'
     return 'approach'
   }
   if (s.finishMode === 'point') return 'finish_list'
   return 'distance'
 }
 
-function buildResultKeyboard(ctx, s, seg, page = 0) {
+/** Откуда доезд до старта (станция / гео) → прямая ссылка Яндекс.Карт, без /api/go/yandex. */
+function resolveApproach(s, start) {
+  const from = s.approachOrigin
+  if (!from || from.lat == null || from.lon == null || !start) return null
+  const meters = haversineM(from, start)
+  if (!(meters > 40)) return null
+  return {
+    from,
+    meters,
+    url: yandexApproachUrl(from, start),
+  }
+}
+
+function stationsNearStart(routeId, kind, start) {
+  let list = []
+  if (kind === 'mck') {
+    list = stationsForRoute(routeId, 'mck').map((st) => ({ ...st, kind: 'mck' }))
+  } else if (kind === 'mcd') {
+    list = stationsForRoute(routeId, 'mcd').map((st) => ({ ...st, kind: 'mcd' }))
+  } else {
+    list = allStationsForRoute(routeId)
+  }
+  return list
+    .map((st) => ({
+      ...st,
+      distM: haversineM(st, start),
+      badge: stationBadge(st, st.kind),
+    }))
+    .sort((a, b) => a.distM - b.distM)
+}
+
+function buildResultKeyboard(ctx, s, seg, page = 0, approach = null) {
   const kb = new InlineKeyboard()
   const tgId = ctx.from?.id
   const yUrl = (u) => trackedYandexUrl(tgId, u)
-  const needApproach =
-    s.wantApproach && seg.approachUrl && seg.approachMeters > APPROACH_THRESHOLD_M
-  if (needApproach && seg.approachUrl) {
-    kb.url(`🚗 Доехать до старта (${formatKm(seg.approachMeters)})`, yUrl(seg.approachUrl)).row()
+  if (approach?.url) {
+    const fromLabel =
+      approach.from.kind === 'geo'
+        ? 'гео'
+        : `«${String(approach.from.name || 'станция').slice(0, 18)}»`
+    // Прямой yandex.ru — без redirect green-route /api/go/yandex
+    kb.url(`🚗 До старта от ${fromLabel} (${formatKm(approach.meters)})`, approach.url).row()
   }
   const legs = Array.isArray(seg.mapsLegs) ? seg.mapsLegs : []
   if (legs.length > 1) {
@@ -259,7 +301,7 @@ function buildResultKeyboard(ctx, s, seg, page = 0) {
     const url = seg.mapsUrl || legs[0]?.url
     if (url) kb.url('🗺 Открыть в Яндекс.Картах', yUrl(url)).row()
   }
-  addResultNav(kb, resultBackTarget(s, seg, needApproach))
+  addResultNav(kb, resultBackTarget(s))
   return kb
 }
 
@@ -1193,6 +1235,10 @@ async function showFinishPointPreview(ctx, absIdx) {
 async function showApproach(ctx) {
   const s = sess(ctx.from.id)
   s.screen = 'approach'
+  s.approachOrigin = null
+  s.approachRailKind = null
+  s.approachStationList = []
+  s.approachStationPage = 0
   const start = startPt(s)
   const distUser = hasGeo(s) && start ? haversineM(userPt(s), start) : 0
   const kb = new InlineKeyboard()
@@ -1212,9 +1258,82 @@ async function showApproach(ctx) {
   await render(
     ctx,
     `<b>Как стартовать?</b>\n` +
-      `До выбранного старта ≈ <b>${formatKm(distUser)}</b>.\n\n` +
-      `· Доехать — Яндекс до старта, потом отрезок\n` +
+      (distUser > 0 ? `До выбранного старта ≈ <b>${formatKm(distUser)}</b>.\n\n` : '\n') +
+      `· Доехать — откуда: МЦК, МЦД или гео, потом отрезок\n` +
       `· Сразу отрезок — если вы уже у линии`,
+    kb,
+  )
+}
+
+async function showApproachVia(ctx) {
+  const s = sess(ctx.from.id)
+  s.screen = 'approach_via'
+  s.wantApproach = true
+  s.approachOrigin = null
+  const start = startPt(s)
+  const kb = new InlineKeyboard()
+  if (railAvailable(s.routeId, s.cityId)) {
+    kb.text('🚇 МЦК', 'approach:via:mck')
+      .row()
+      .text('🚆 МЦД', 'approach:via:mcd')
+      .row()
+      .text('🚇/🚆 МЦК / МЦД', 'approach:via:both')
+      .row()
+  }
+  kb.text('📍 Текущее положение', 'approach:via:geo').row()
+  addNav(kb, 'approach')
+  await render(
+    ctx,
+    `<b>Доехать до старта</b>\n` +
+      `Старт: ${start?.name || 'точка на линии'}\n\n` +
+      `Откуда построить доезд в Яндекс.Картах?`,
+    kb,
+  )
+}
+
+async function showApproachStations(ctx) {
+  const s = sess(ctx.from.id)
+  s.screen = 'approach_stations'
+  const start = startPt(s)
+  const kind = s.approachRailKind || 'both'
+  const list = stationsNearStart(s.routeId, kind, start)
+  s.approachStationList = list
+  if (!list.length) {
+    await safeAnswerCb(ctx)
+    await render(
+      ctx,
+      `<b>Нет станций рядом</b>\nПопробуйте другой тип или геопозицию.`,
+      addNav(new InlineKeyboard(), 'approach_via'),
+    )
+    return
+  }
+  const page = Math.max(0, Math.min(s.approachStationPage || 0, Math.ceil(list.length / PAGE_SIZE) - 1))
+  s.approachStationPage = page
+  const slice = list.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+  const kb = new InlineKeyboard()
+  for (let i = 0; i < slice.length; i++) {
+    const st = slice[i]
+    const abs = page * PAGE_SIZE + i
+    kb.text(
+      truncateBtn(`${st.badge} · ${st.name} · ${formatKm(st.distM)}`),
+      `apickst:${abs}`,
+    ).row()
+  }
+  const pages = Math.ceil(list.length / PAGE_SIZE)
+  if (pages > 1) {
+    kb.text(page > 0 ? '‹' : '·', page > 0 ? `apage:${page - 1}` : 'noop')
+      .text(`${page + 1}/${pages}`, 'noop')
+      .text(page < pages - 1 ? '›' : '·', page < pages - 1 ? `apage:${page + 1}` : 'noop')
+      .row()
+  }
+  addNav(kb, 'approach_via')
+  const kindTitle =
+    kind === 'mck' ? 'МЦК' : kind === 'mcd' ? 'МЦД' : 'МЦК / МЦД'
+  await render(
+    ctx,
+    `<b>Станция ${kindTitle}</b>\n` +
+      `Ближе к старту «${start?.name || 'точка'}» — выше в списке.\n` +
+      `Выберите, откуда доедете до старта.`,
     kb,
   )
 }
@@ -1246,9 +1365,9 @@ async function showResult(ctx) {
   }
   s.lastSeg = seg
   s.resultLegsPage = 0
+  const start = startPt(s) || seg.start
+  const approach = s.wantApproach ? resolveApproach(s, start) : null
   const dir = s.direction === 'cw' ? 'по часовой' : 'против часовой'
-  const needApproach =
-    s.wantApproach && seg.approachUrl && seg.approachMeters > APPROACH_THRESHOLD_M
   const d = s.difficulty ? DIFFICULTY[s.difficulty] : null
 
   let caption =
@@ -1260,8 +1379,15 @@ async function showResult(ctx) {
     `${s.mode === 'bike' ? 'велосипед' : 'пешком'}\n\n` +
     `На карте: зелёная линия · 🟢 старт · 🔴 финиш.\n`
 
-  if (needApproach) {
-    caption += `До старта ≈ <b>${formatKm(seg.approachMeters)}</b>.\n`
+  if (approach) {
+    if (approach.from.kind === 'geo') {
+      caption +=
+        `\nДоезд: от вашей геопозиции → старт ≈ <b>${formatKm(approach.meters)}</b>.\n`
+    } else {
+      caption +=
+        `\nДоезд: от ${approach.from.badge || 'станции'} «${approach.from.name}» → старт ≈ <b>${formatKm(approach.meters)}</b>.\n` +
+        `На карте: пунктир от станции до старта.\n`
+    }
   }
 
   const legs = Array.isArray(seg.mapsLegs) ? seg.mapsLegs : []
@@ -1270,13 +1396,29 @@ async function showResult(ctx) {
       `\nЯндекс — <b>${legs.length} участка</b> по порядку (так держит тропу через парки).\n`
   }
 
-  const kb = buildResultKeyboard(ctx, s, seg, 0)
+  const kb = buildResultKeyboard(ctx, s, seg, 0, approach)
+
+  const stationOpt =
+    approach && approach.from.kind !== 'geo'
+      ? {
+          lat: approach.from.lat,
+          lon: approach.from.lon,
+          label: approach.from.name,
+          color: approach.from.kind === 'mck' ? '#de64a1' : '#f59e0b',
+        }
+      : null
+  const userOpt =
+    approach && approach.from.kind === 'geo'
+      ? { lat: approach.from.lat, lon: approach.from.lon }
+      : null
 
   const png = await fetchRouteMapPng(seg.route, {
     routeId: s.routeId,
     start: seg.start,
     end: seg.end,
-    cacheKey: `seg:${seg.routeId}:${seg.direction}:${Math.round(seg.meters)}:${seg.start.lat.toFixed(4)}`,
+    station: stationOpt,
+    user: userOpt,
+    cacheKey: `seg:${seg.routeId}:${seg.direction}:${Math.round(seg.meters)}:${seg.start.lat.toFixed(4)}:ap:${approach?.from?.kind || 'none'}:${approach?.from?.name || ''}`,
   })
   await renderPhoto(ctx, caption, png, kb)
 
@@ -1382,6 +1524,10 @@ async function go(ctx, screen) {
       return showFinishList(ctx)
     case 'approach':
       return showApproach(ctx)
+    case 'approach_via':
+      return showApproachVia(ctx)
+    case 'approach_stations':
+      return showApproachStations(ctx)
     case 'result':
       return showResult(ctx)
     default:
@@ -1566,7 +1712,8 @@ bot.callbackQuery(/^rlegs:(\d+)$/, async (ctx) => {
   }
   const page = Number(ctx.match[1]) || 0
   s.resultLegsPage = page
-  const kb = buildResultKeyboard(ctx, s, seg, page)
+  const approach = s.wantApproach ? resolveApproach(s, startPt(s) || seg.start) : null
+  const kb = buildResultKeyboard(ctx, s, seg, page, approach)
   try {
     await ctx.editMessageReplyMarkup({ reply_markup: kb })
   } catch {
@@ -1860,7 +2007,68 @@ bot.callbackQuery('finish:confirm', async (ctx) => {
 })
 
 bot.callbackQuery(/^approach:(yes|no)$/, async (ctx) => {
-  sess(ctx.from.id).wantApproach = ctx.match[1] === 'yes'
+  const s = sess(ctx.from.id)
+  if (ctx.match[1] === 'no') {
+    s.wantApproach = false
+    s.approachOrigin = null
+    s.approachRailKind = null
+    await showResult(ctx)
+    return
+  }
+  s.wantApproach = true
+  await showApproachVia(ctx)
+})
+
+bot.callbackQuery(/^approach:via:(mck|mcd|both|geo)$/, async (ctx) => {
+  const s = sess(ctx.from.id)
+  const via = ctx.match[1]
+  s.wantApproach = true
+  if (via === 'geo') {
+    if (!hasGeo(s)) {
+      await ctx.answerCallbackQuery({
+        text: 'Сначала укажите геолокацию на шаге старта',
+        show_alert: true,
+      })
+      return
+    }
+    const u = userPt(s)
+    s.approachOrigin = {
+      kind: 'geo',
+      lat: u.lat,
+      lon: u.lon,
+      name: 'Геопозиция',
+      badge: 'гео',
+    }
+    await showResult(ctx)
+    return
+  }
+  s.approachRailKind = via
+  s.approachStationPage = 0
+  await showApproachStations(ctx)
+})
+
+bot.callbackQuery(/^apage:(\d+)$/, async (ctx) => {
+  const s = sess(ctx.from.id)
+  s.approachStationPage = Number(ctx.match[1]) || 0
+  await showApproachStations(ctx)
+})
+
+bot.callbackQuery(/^apickst:(\d+)$/, async (ctx) => {
+  const s = sess(ctx.from.id)
+  const idx = Number(ctx.match[1])
+  const st = s.approachStationList?.[idx]
+  if (!st) {
+    await safeAnswerCb(ctx)
+    return
+  }
+  s.wantApproach = true
+  s.approachOrigin = {
+    kind: st.kind || 'mck',
+    lat: st.lat,
+    lon: st.lon,
+    name: st.name,
+    badge: st.badge || stationBadge(st, st.kind),
+  }
   await showResult(ctx)
 })
 
