@@ -332,6 +332,27 @@ function escapeSvg(t) {
     .slice(0, 12)
 }
 
+/** Кадр вокруг точки с тем же aspect, что у PNG — маркер в центре, без «коридора». */
+function boundsCentered(point, width, height, halfShortM = 2400) {
+  const target = width / Math.max(height, 1)
+  let hM = halfShortM * 2
+  let wM = hM * target
+  if (target < 1) {
+    wM = halfShortM * 2
+    hM = wM / Math.max(target, 0.01)
+  }
+  const mPerLat = 111320
+  const mPerLon = Math.max(111320 * Math.cos((point.lat * Math.PI) / 180), 1e-6)
+  const dLat = hM / 2 / mPerLat
+  const dLon = wM / 2 / mPerLon
+  return {
+    minLat: point.lat - dLat,
+    maxLat: point.lat + dLat,
+    minLon: point.lon - dLon,
+    maxLon: point.lon + dLon,
+  }
+}
+
 async function renderDynamic(points, opts = {}) {
   if (!points || points.length < 2) return null
   const start = opts.start || points[0]
@@ -340,7 +361,9 @@ async function renderDynamic(points, opts = {}) {
   if (opts.user) extras.push(opts.user)
   if (opts.station) extras.push(opts.station)
   const all = [...points, ...extras]
-  const b = padBoundsAspect(boundsOf(all), W, H, opts.pad ?? 0.16)
+  const b =
+    opts.bounds ||
+    padBoundsAspect(boundsOf(all), W, H, opts.pad ?? 0.16)
   const zoom = fitZoom(b, W, H)
   try {
     const base = await mosaicBasemap(b, zoom, W, H)
@@ -474,7 +497,7 @@ export async function fetchPointMapPng(point, opts = {}) {
   }
 
   const window = trackPts?.length
-    ? windowAround(trackPts, point, opts.radiusM ?? 3200)
+    ? windowAround(trackPts, point, opts.radiusM ?? 4500)
     : [
         { lat: point.lat - 0.01, lon: point.lon - 0.015 },
         point,
@@ -485,12 +508,24 @@ export async function fetchPointMapPng(point, opts = {}) {
     window.push(opts.station)
   }
 
+  // Кадр всегда от центра точки (как «пин» на карте), а не по bbox длинного куска линии.
+  const bounds = boundsCentered(point, W, H, opts.viewRadiusM ?? 2600)
+  if (opts.user) {
+    // слегка расширить, если «Вы здесь» чуть за краем
+    const ub = boundsOf([point, opts.user])
+    bounds.minLat = Math.min(bounds.minLat, ub.minLat)
+    bounds.maxLat = Math.max(bounds.maxLat, ub.maxLat)
+    bounds.minLon = Math.min(bounds.minLon, ub.minLon)
+    bounds.maxLon = Math.max(bounds.maxLon, ub.maxLon)
+    Object.assign(bounds, padBoundsAspect(bounds, W, H, 0.12))
+  }
+
   const png = await renderDynamic(window, {
     start: point,
     end: point, // только зелёный
     user: opts.user,
     station: opts.station || null,
-    pad: 0.22,
+    bounds,
   })
   if (png) {
     cacheSet(key, png)
