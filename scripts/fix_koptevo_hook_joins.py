@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Rebuild Koptevo dashed alt so both ends sit on the official green line.
+"""Rebuild Koptevo dashed alt from real pre-cut ring geometry (street-level).
 
-Uses the pre-red-line northern park segment (git 81b0682 ring) between the two
-forks: Streshnevo side ↔ Pasechnaya / Timiryazev park rejoin.
+Source: git rev before officialGreenRing2026 chopped the northern tip into chords.
+Ends snap exactly onto current official green line.
 """
 from __future__ import annotations
 
@@ -15,34 +15,16 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "public" / "data"
 RING_PATH = DATA / "ring.geojson"
 ALT_PATH = DATA / "alternatives" / "koptevo-hook.geojson"
-OLD_REV = "81b0682"
+# Full Koptevo tip still on main (max lat ~55.846), street-following, no chords
+SOURCE_REV = "4bc87de"
 
 sys.path.insert(0, str(ROOT / "scripts"))
 from clean_ring_geometry import hav  # noqa: E402
 
 
-def resample(pts: list[list[float]], step_m: float = 28.0) -> list[list[float]]:
-    if len(pts) < 2:
-        return [list(p) for p in pts]
-    out = [list(pts[0])]
-    acc = 0.0
-    for i in range(1, len(pts)):
-        a, b = pts[i - 1], pts[i]
-        seg = hav(a, b)
-        while acc + seg >= step_m and seg > 1e-6:
-            t = (step_m - acc) / seg
-            a = [a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]
-            out.append(list(a))
-            seg = hav(a, b)
-            acc = 0.0
-        acc += seg
-    if hav(out[-1], pts[-1]) > 4:
-        out.append(list(pts[-1]))
-    return out
-
-
-def nearest(coords: list[list[float]], pin: list[float]) -> int:
-    return min(range(len(coords)), key=lambda i: hav(coords[i], pin))
+def nearest(coords: list[list[float]], pin: list[float], lo: int = 0, hi: int | None = None) -> int:
+    hi = len(coords) if hi is None else hi
+    return min(range(lo, hi), key=lambda i: hav(coords[i], pin))
 
 
 def path_km(pts: list[list[float]]) -> float:
@@ -50,41 +32,43 @@ def path_km(pts: list[list[float]]) -> float:
 
 
 def main() -> None:
-    old = json.loads(subprocess.check_output(["git", "show", f"{OLD_REV}:public/data/ring.geojson"]))
-    new = json.loads(RING_PATH.read_text(encoding="utf-8"))
-    oldc = [list(c) for c in old["features"][0]["geometry"]["coordinates"]]
-    newc = [list(c) for c in new["features"][0]["geometry"]["coordinates"]]
+    src = json.loads(subprocess.check_output(["git", "show", f"{SOURCE_REV}:public/data/ring.geojson"]))
+    cur = json.loads(RING_PATH.read_text(encoding="utf-8"))
+    oldc = [list(c) for c in src["features"][0]["geometry"]["coordinates"]]
+    newc = [list(c) for c in cur["features"][0]["geometry"]["coordinates"]]
 
-    west_pin = [37.485154, 55.817311]
-    east_pin = [37.529427, 55.825607]
-    ow, oe = nearest(oldc, west_pin), nearest(oldc, east_pin)
-    lo, hi = sorted((ow, oe))
-    seg = oldc[lo : hi + 1]
+    # Koptevo tip on source ring
+    tip_i = max(
+        (i for i, p in enumerate(oldc) if 37.50 <= p[0] <= 37.53),
+        key=lambda i: oldc[i][1],
+    )
+    if oldc[tip_i][1] < 55.843:
+        raise SystemExit(f"FAIL: source tip too south ({oldc[tip_i][1]}) — wrong rev?")
 
-    def dist_to_new(p: list[float]) -> float:
+    # Walk outward from tip until we hit the current official corridor (close to newc)
+    def dist_new(p: list[float]) -> float:
         return min(hav(p, c) for c in newc)
 
-    far = [(i, dist_to_new(p)) for i, p in enumerate(seg)]
-    close = [i for i, d in far if d < 45]
-    runs: list[list[int]] = []
-    run: list[int] | None = None
-    for i, d in far:
-        if d >= 50:
-            run = [i, i] if run is None else [run[0], i]
-        elif run:
-            runs.append(run)
-            run = None
-    if run:
-        runs.append(run)
-    if not runs:
-        raise SystemExit("FAIL: no northern detour found in old ring")
-    a, b = max(runs, key=lambda r: r[1] - r[0])
-    before = [i for i in close if i < a]
-    after = [i for i in close if i > b]
-    start = before[-1] if before else a
-    end = after[0] if after else b
-    body = seg[start : end + 1]
+    # West: decreasing index from tip until close to official & south enough
+    w = tip_i
+    while w > 0 and not (dist_new(oldc[w]) < 40 and oldc[w][1] < 55.822 and oldc[w][0] < 37.495):
+        w -= 1
+        if tip_i - w > 400:
+            break
+    # East: increasing index until close to official near Pasechnaya
+    e = tip_i
+    while e < len(oldc) - 1 and not (
+        dist_new(oldc[e]) < 40 and oldc[e][1] < 55.828 and oldc[e][0] > 37.525
+    ):
+        e += 1
+        if e - tip_i > 400:
+            break
 
+    if e <= w + 20:
+        raise SystemExit(f"FAIL: bad fork window w={w} e={e} tip={tip_i}")
+
+    body = [list(p) for p in oldc[w : e + 1]]
+    # Snap ends onto current official line (true junctions)
     i0 = nearest(newc, body[0])
     i1 = nearest(newc, body[-1])
     if i0 > i1:
@@ -93,20 +77,27 @@ def main() -> None:
 
     hook = [list(newc[i0])]
     for p in body:
-        if hav(hook[-1], p) > 10:
+        if hav(hook[-1], p) > 8:
             hook.append(list(p))
-    hook.append(list(newc[i1]))
-    hook = resample(hook, 28)
-    # Force exact forks on official line
+    if hav(hook[-1], newc[i1]) > 5:
+        hook.append(list(newc[i1]))
+    else:
+        hook[-1] = list(newc[i1])
     hook[0] = list(newc[i0])
     hook[-1] = list(newc[i1])
 
+    # Quality: no flight chords, tip retained
+    jumps = [hav(hook[i], hook[i + 1]) for i in range(len(hook) - 1)]
+    max_jump = max(jumps) if jumps else 0
+    max_lat = max(c[1] for c in hook)
+    if max_lat < 55.843:
+        raise SystemExit(f"FAIL: lost Koptevo tip (max lat {max_lat})")
+    if max_jump > 120:
+        raise SystemExit(f"FAIL: chord in hook max_seg={max_jump:.0f}m")
     d0 = hav(hook[0], newc[nearest(newc, hook[0])])
     d1 = hav(hook[-1], newc[nearest(newc, hook[-1])])
     if d0 > 1 or d1 > 1:
-        raise SystemExit(f"FAIL: ends not on main ({d0:.1f}m / {d1:.1f}m)")
-    if hav(hook[0], hook[-1]) < 500:
-        raise SystemExit("FAIL: forks too close")
+        raise SystemExit(f"FAIL: ends not on main ({d0:.1f}/{d1:.1f})")
 
     km = round(path_km(hook), 2)
     alt = {
@@ -118,12 +109,13 @@ def main() -> None:
                     "id": "koptevo-hook",
                     "title": "Крюк к МЦК Коптево",
                     "description": (
-                        "Альтернатива через парк к МЦК Коптево: от развилки у Стрешнево "
-                        "до слияния с официальным кольцом у Пасечной. Не входит в официальный маршрут."
+                        "Реальный старый заезд через парк к МЦК Коптево по треку кольца: "
+                        "от развилки у Стрешнево до слияния у Пасечной. Не входит в официальный маршрут."
                     ),
                     "kind": "alternative",
                     "optional": True,
                     "km": km,
+                    "sourceRev": SOURCE_REV,
                     "forkWest": {"lat": hook[0][1], "lon": hook[0][0]},
                     "forkEast": {"lat": hook[-1][1], "lon": hook[-1][0]},
                 },
@@ -133,14 +125,12 @@ def main() -> None:
     }
     ALT_PATH.parent.mkdir(parents=True, exist_ok=True)
     ALT_PATH.write_text(json.dumps(alt, ensure_ascii=False), encoding="utf-8")
-
-    main_km = round(path_km(newc[i0 : i1 + 1]), 2)
     print(f"wrote {ALT_PATH}")
-    print(f"hook pts={len(hook)} km={km}")
-    print(f"fork W {hook[0][1]:.6f},{hook[0][0]:.6f} (main idx {i0})")
-    print(f"fork E {hook[-1][1]:.6f},{hook[-1][0]:.6f} (main idx {i1})")
-    print(f"official shortcut between forks ≈ {main_km} km")
-    print(f"max lat on hook {max(c[1] for c in hook):.6f}")
+    print(f"source={SOURCE_REV} tip_i={tip_i} window={w}-{e}")
+    print(f"hook pts={len(hook)} km={km} max_seg={max_jump:.1f}m max_lat={max_lat:.6f}")
+    print(f"fork W {hook[0][1]:.6f},{hook[0][0]:.6f} idx={i0}")
+    print(f"fork E {hook[-1][1]:.6f},{hook[-1][0]:.6f} idx={i1}")
+    print(f"segs>80m={sum(1 for j in jumps if j > 80)}")
     print("OK")
 
 
