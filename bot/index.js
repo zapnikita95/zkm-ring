@@ -1426,11 +1426,24 @@ async function showResult(ctx) {
   })
   await renderPhoto(ctx, caption, png, kb)
 
+  const tripStart = seg.start || seg.route?.[0]
+  const tripEnd = seg.end || seg.route?.[seg.route?.length - 1]
+  const firstPts = legs[0]?.points || []
+  const viaChecksum = firstPts.length
+    ? `${firstPts.length}:${Number(firstPts[0].lat).toFixed(4)},${Number(firstPts[0].lon).toFixed(4)}>${Number(firstPts[firstPts.length - 1].lat).toFixed(4)},${Number(firstPts[firstPts.length - 1].lon).toFixed(4)}`
+    : ''
   trackBot(ctx, 'bot_segment', {
+    tripId: `b_${ctx.from.id}_${Date.now().toString(36)}`,
     routeId: s.routeId,
     meters: Math.round(seg.meters || 0),
     mode: s.mode,
     legs: legs.length || 1,
+    startLat: tripStart ? Number(Number(tripStart.lat).toFixed(5)) : null,
+    startLon: tripStart ? Number(Number(tripStart.lon).toFixed(5)) : null,
+    endLat: tripEnd ? Number(Number(tripEnd.lat).toFixed(5)) : null,
+    endLon: tripEnd ? Number(Number(tripEnd.lon).toFixed(5)) : null,
+    viaCount: firstPts.length || null,
+    viaChecksum,
   })
 }
 

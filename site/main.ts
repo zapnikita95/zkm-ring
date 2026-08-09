@@ -163,11 +163,44 @@ const savedMeta = new Map<string, { title: string; kmListed: number }>()
 const savedPlansMeta = new Map<string, { title: string; kmListed: number; planId: string }>()
 let lastShareUrl = ''
 let lastSavedPlanId = ''
+/** Корреляция build_route → open_maps → save_plan */
+let currentTripId = ''
 let focusMarker: maplibregl.Marker | null = null
 let lastPersistedStep: Step | null = null
 let persistTimer: ReturnType<typeof setTimeout> | null = null
 /** Не писать URL во время boot/restore */
 let suppressPersist = false
+
+function newTripId(): string {
+  currentTripId = `t_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`
+  return currentTripId
+}
+
+function tripNavProps(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  const seg = state.segment
+  const start = state.start || (seg.length ? seg[0] : null)
+  const end = state.end || (seg.length ? seg[seg.length - 1] : null)
+  const legs = seg.length >= 2 ? mapsLegsForProvider() : []
+  const firstPts = (legs[0] as { points?: LatLon[] } | undefined)?.points || []
+  const viaChecksum = firstPts.length
+    ? `${firstPts.length}:${firstPts[0].lat.toFixed(4)},${firstPts[0].lon.toFixed(4)}>${firstPts[firstPts.length - 1].lat.toFixed(4)},${firstPts[firstPts.length - 1].lon.toFixed(4)}`
+    : ''
+  return {
+    tripId: currentTripId || newTripId(),
+    routeId: state.routeId,
+    meters: Math.round(pathLengthM(seg)),
+    mode: state.mode,
+    mapsProvider: state.mapsProvider,
+    startLat: start ? Number(start.lat.toFixed(5)) : null,
+    startLon: start ? Number(start.lon.toFixed(5)) : null,
+    endLat: end ? Number(end.lat.toFixed(5)) : null,
+    endLon: end ? Number(end.lon.toFixed(5)) : null,
+    legCount: legs.length,
+    viaCount: firstPts.length || null,
+    viaChecksum,
+    ...extra,
+  }
+}
 
 function getGuestToken(): string {
   let t = localStorage.getItem(GUEST_KEY) || ''
@@ -811,6 +844,10 @@ function showSavePlanModal() {
         lastShareUrl = data.shareUrl.startsWith('http')
           ? data.shareUrl
           : `${location.origin}/?p=${data.plan.id}`
+        trackClient(
+          'save_plan',
+          tripNavProps({ planId: data.plan.id, title: title.slice(0, 80) }),
+        )
         await loadSavedPlans()
         close()
         toast('Маршрут сохранён')
@@ -2690,7 +2727,7 @@ function viewMaps() {
   const openCls = provider === '2gis' ? 'js-open-2gis' : 'js-open-yandex'
   let legsHtml = `<a class="btn" href="#" aria-disabled="true">🗺 ${providerLabel}</a>`
   if (legs.length === 1) {
-    legsHtml = `<a class="btn ${openCls}" href="${legs[0].url}" target="_blank" rel="noopener">🗺 ${providerLabel}</a>`
+    legsHtml = `<a class="btn ${openCls}" href="${legs[0].url}" target="_blank" rel="noopener" data-leg-index="0" data-leg-total="1">🗺 ${providerLabel}</a>`
   } else if (legs.length > 1) {
     legsHtml = `<p class="lead tiny yandex-legs-hint">Откройте участки <b>по порядку</b> — так ${
       provider === '2gis' ? '2ГИС' : 'Яндекс'
@@ -2700,7 +2737,7 @@ function viewMaps() {
             .map(
               (leg) =>
                 `<li>
-                  <a class="btn ${leg.index === 0 ? '' : 'secondary'} ${openCls}" href="${leg.url}" target="_blank" rel="noopener">
+                  <a class="btn ${leg.index === 0 ? '' : 'secondary'} ${openCls}" href="${leg.url}" target="_blank" rel="noopener" data-leg-index="${leg.index}" data-leg-total="${leg.total}">
                     🗺 Участок ${leg.index + 1} из ${leg.total}
                     <span class="yandex-leg-meta">${formatKm(leg.meters)}</span>
                   </a>
@@ -3059,10 +3096,28 @@ function wirePanel() {
     })
   })
   document.querySelectorAll('.js-open-yandex').forEach((a) => {
-    a.addEventListener('click', () => trackClient('open_yandex_maps', { routeId: state.routeId }))
+    a.addEventListener('click', () => {
+      const el = a as HTMLElement
+      trackClient(
+        'open_yandex_maps',
+        tripNavProps({
+          legIndex: Number(el.dataset.legIndex || 0),
+          legTotal: Number(el.dataset.legTotal || 1),
+        }),
+      )
+    })
   })
   document.querySelectorAll('.js-open-2gis').forEach((a) => {
-    a.addEventListener('click', () => trackClient('open_2gis_maps', { routeId: state.routeId }))
+    a.addEventListener('click', () => {
+      const el = a as HTMLElement
+      trackClient(
+        'open_2gis_maps',
+        tripNavProps({
+          legIndex: Number(el.dataset.legIndex || 0),
+          legTotal: Number(el.dataset.legTotal || 1),
+        }),
+      )
+    })
   })
   document.querySelectorAll('#maps-provider-seg [data-maps-provider]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -3408,11 +3463,8 @@ function wirePanel() {
   })
   $('#btn-to-maps')?.addEventListener('click', () => {
     syncSegment()
-    trackClient('build_route', {
-      routeId: state.routeId,
-      meters: Math.round(pathLengthM(state.segment)),
-      mode: state.mode,
-    })
+    newTripId()
+    trackClient('build_route', tripNavProps())
     state.step = 'maps'
     setTopSub('Откройте в картах')
     render()
