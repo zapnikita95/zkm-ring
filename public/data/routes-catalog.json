@@ -203,7 +203,7 @@
     {
       "id": "kis-7-medovye-vodopady",
       "title": "Медовые водопады",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · средний, ≈ 40.6 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · лёгкий, ≈ 40.6 км",
       "kmListed": 4.0,
       "geojson": "data/routes/kis-7-medovye-vodopady.geojson",
       "points": 642,
@@ -217,7 +217,7 @@
     {
       "id": "kis-68-essentuki-iz-kisolvodska",
       "title": "Ессентуки из Кисловодска",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · средний, ≈ 58.7 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · лёгкий, ≈ 58.7 км",
       "kmListed": 10.0,
       "geojson": "data/routes/kis-68-essentuki-iz-kisolvodska.geojson",
       "points": 514,
@@ -231,7 +231,7 @@
     {
       "id": "kis-35-shadzhatmaz",
       "title": "Шаджатмаз",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · средний, ≈ 45.2 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · лёгкий, ≈ 45.2 км",
       "kmListed": 10.0,
       "geojson": "data/routes/kis-35-shadzhatmaz.geojson",
       "points": 669,
@@ -245,7 +245,7 @@
     {
       "id": "kis-27-zelyonoe-ozero",
       "title": "Зелёное озеро",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · тяжёлый, ≈ 118.4 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · лёгкий, ≈ 118.4 км",
       "kmListed": 15.0,
       "geojson": "data/routes/kis-27-zelyonoe-ozero.geojson",
       "points": 1103,
@@ -301,7 +301,7 @@
     {
       "id": "kis-18-dolina-ocharovaniya",
       "title": "Долина Очарования",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · лёгкий, ≈ 25.3 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · средний, ≈ 25.3 км",
       "kmListed": 25.3,
       "geojson": "data/routes/kis-18-dolina-ocharovaniya.geojson",
       "points": 382,
@@ -315,7 +315,7 @@
     {
       "id": "kis-46-zamok-kovarstva-i-lyubvi",
       "title": "Замок Коварства и Любви",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · лёгкий, ≈ 31.6 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · средний, ≈ 31.6 км",
       "kmListed": 31.6,
       "geojson": "data/routes/kis-46-zamok-kovarstva-i-lyubvi.geojson",
       "points": 626,
@@ -399,7 +399,7 @@
     {
       "id": "kis-64-vosmerka-po-kmv",
       "title": "Восьмерка по КМВ",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · средний, ≈ 63.4 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · тяжёлый, ≈ 63.4 км",
       "kmListed": 63.4,
       "geojson": "data/routes/kis-64-vosmerka-po-kmv.geojson",
       "points": 716,
@@ -413,7 +413,7 @@
     {
       "id": "kis-45-kichmalka-i-shadzhatmaz",
       "title": "Кичмалка и Шаджатмаз",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · средний, ≈ 75.7 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · тяжёлый, ≈ 75.7 км",
       "kmListed": 75.7,
       "geojson": "data/routes/kis-45-kichmalka-i-shadzhatmaz.geojson",
       "points": 1096,
@@ -427,7 +427,7 @@
     {
       "id": "kis-50-sovhoznoe-i-dzhenal",
       "title": "Совхозное и Дженал",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · тяжёлый, ≈ 88.1 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · хардкор, ≈ 88.1 км",
       "kmListed": 88.1,
       "geojson": "data/routes/kis-50-sovhoznoe-i-dzhenal.geojson",
       "points": 651,
@@ -441,7 +441,7 @@
     {
       "id": "kis-11-zheleznovodsk",
       "title": "Железноводск",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · тяжёлый, ≈ 97.7 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · хардкор, ≈ 97.7 км",
       "kmListed": 97.7,
       "geojson": "data/routes/kis-11-zheleznovodsk.geojson",
       "points": 840,
@@ -455,7 +455,7 @@
     {
       "id": "kis-13-pyatigorsk",
       "title": "Пятигорск",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · тяжёлый, ≈ 117.8 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · хардкор, ≈ 117.8 км",
       "kmListed": 117.8,
       "geojson": "data/routes/kis-13-pyatigorsk.geojson",
       "points": 1124,
@@ -469,7 +469,7 @@
     {
       "id": "kis-40-ozera-shadhurej-i-dzhinal",
       "title": "Озера Шадхурей и Джинал",
-      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · тяжёлый, ≈ 123.6 км",
+      "description": "Маршрут по Кисловодску и Кавказским Минеральным Водам · хардкор, ≈ 123.6 км",
       "kmListed": 123.6,
       "geojson": "data/routes/kis-40-ozera-shadhurej-i-dzhinal.geojson",
       "points": 1639,
@@ -833,7 +833,7 @@
     {
       "id": "bt-124",
       "title": "Прогулка по лесным тропинкам",
-      "description": "С biketravel.space (прогулочные) · лёгкий, ≈ 28.7 км",
+      "description": "С biketravel.space (прогулочные) · средний, ≈ 28.7 км",
       "kmListed": 28.7,
       "geojson": "data/routes/bt-124.geojson",
       "points": 403,
@@ -861,7 +861,7 @@
     {
       "id": "bt-141",
       "title": "Рай",
-      "description": "С biketravel.space (прогулочные) · тяжёлый, ≈ 88.6 км",
+      "description": "С biketravel.space (прогулочные) · хардкор, ≈ 88.6 км",
       "kmListed": 88.6,
       "geojson": "data/routes/bt-141.geojson",
       "points": 1136,
@@ -889,7 +889,7 @@
     {
       "id": "bt-129",
       "title": "Меркитская крепость. Вело-тропа (большая)",
-      "description": "С biketravel.space (прогулочные) · лёгкий, ≈ 34.1 км",
+      "description": "С biketravel.space (прогулочные) · средний, ≈ 34.1 км",
       "kmListed": 34.1,
       "geojson": "data/routes/bt-129.geojson",
       "points": 1104,
