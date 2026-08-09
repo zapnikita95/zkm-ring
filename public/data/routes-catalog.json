@@ -2,15 +2,15 @@
   "routes": [
     {
       "id": "zkm-ring",
-      "title": "Зелёное кольцо по 2ГИС",
-      "description": "Кольцевой веломаршрут как в карточке 2ГИС «Зелёное Кольцо» — около 129 км.",
+      "title": "Официальное зелёное кольцо",
+      "description": "Официальный кольцевой маршрут (~129 км) — парки и набережные вокруг Москвы. Туалеты и особенности тропы показаны рядом с линией.",
       "kmListed": 129.29,
       "geojson": "data/ring.geojson",
       "points": 2261,
       "source": "2gis",
       "landmarks": [],
       "featured": true,
-      "sourceNote": "https://2gis.ru/moscow/geo/70030077065188560 · zel_kol.gpx",
+      "sourceNote": "2GIS / zel_kol.gpx · официальная линия",
       "cityId": "msk",
       "difficulty": "hardcore"
     },

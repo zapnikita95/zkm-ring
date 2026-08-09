@@ -113,7 +113,7 @@ export function trackTitle(routeId) {
     return savedTrackTitles.get(routeId) || 'Сохранённый трек'
   }
   const item = routeCatalog.find((r) => r.id === routeId)
-  return item?.title || 'Зелёное кольцо по 2ГИС'
+  return item?.title || 'Официальное зелёное кольцо'
 }
 
 /** Длина линии трека в метрах (по геометрии, не каталожный kmListed). */

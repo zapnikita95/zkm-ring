@@ -402,16 +402,30 @@ function itemsNearRoute<T extends LatLon & { id: string }>(items: T[], route: La
   return out
 }
 
+/** Радиус «интересных точек» к выбранному отрезку. */
+function landmarkNearSegMaxM(): number {
+  // Официальное кольцо короче RuTrail — POI часто чуть в стороне от линии.
+  return isGreenRingRoute() ? 1200 : 900
+}
+
+/** Радиус туалетов/особенностей тропы к отрезку. */
+function featureNearSegMaxM(): number {
+  // RuTrail-pois писались под длинный трек; на официальном коридоре нужно шире.
+  if (state.routeId === 'zkm-ring') return 900
+  if (state.routeId === 'zkm-rutrail') return 320
+  return 280
+}
+
 function interestingOnSegment(): LandmarkLite[] {
   return itemsNearRoute(
     landmarks.filter((l) => !l.listOnly && l.category !== 'alert' && l.category !== 'note'),
     state.segment,
-    900,
+    landmarkNearSegMaxM(),
   )
 }
 
 function featuresOnSegment(): TrailPoi[] {
-  return itemsNearRoute(trailPois, state.segment, 280)
+  return itemsNearRoute(trailPois, state.segment, featureNearSegMaxM())
 }
 
 function poiKindLabel(kind: string): string {
