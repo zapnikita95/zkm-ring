@@ -865,10 +865,10 @@
         "id": "park-timiryazev",
         "name": "Тимирязевский парк",
         "category": "park",
-        "description": "Лесопарк академии",
+        "description": "Лесопарк академии · линия по Верхней аллее (Зелёное кольцо)",
         "radius_m": 120,
-        "trackIndex": 5442,
-        "ringIndex": 5442,
+        "trackIndex": 5448,
+        "ringIndex": 5448,
         "snapDist_m": 0,
         "orderCw": 39,
         "orderCcw": 0
@@ -876,8 +876,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          37.550907,
-          55.83321
+          37.55965994899686,
+          55.83254955351675
         ]
       }
     },
