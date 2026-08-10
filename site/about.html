@@ -17,15 +17,37 @@
     <meta property="og:title" content="О проекте — Зелёный Маршрут" />
     <meta
       property="og:description"
-      content="Приятный кусок готового маршрута — старт и финиш где удобно — в привычном навигаторе."
+      content="Соберите удобный маршрут по готовому треку и откройте его в привычных картах. Старт и финиш — где вам удобно."
     />
     <meta property="og:url" content="https://green-route.ru/about" />
-    <meta property="og:image" content="https://green-route.ru/og-cover.png" />
+    <meta property="og:image" content="https://green-route.ru/og-cover.png?v=20260810" />
     <meta name="google-site-verification" content="38qbxfbjeoFr9j1HY__bSWC1vKOb_AP2xxcZB1J_d6g" />
     <meta name="yandex-verification" content="888c9cd52a0fdf02" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon-64.png" />
     <link rel="apple-touch-icon" href="/icons/app-icon.png" />
+    <style id="zm-critical">
+      /* критический слой: не ждём CSS, сразу тёмный фон + скролл документа */
+      html.about-html,
+      body.about-page {
+        background: #121412 !important;
+        color: #f0f2f0 !important;
+        height: auto !important;
+        min-height: 100% !important;
+        min-height: 100dvh !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y pinch-zoom !important;
+        overscroll-behavior: auto !important;
+      }
+      .about-shell.shell {
+        display: block !important;
+        height: auto !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;
+      }
+    </style>
     <link rel="stylesheet" href="./style.css" />
     <script type="application/ld+json">
       {
@@ -160,11 +182,46 @@
           <p><a href="mailto:zap.nikita95@gmail.com">zap.nikita95@gmail.com</a></p>
         </section>
 
+        <section class="about-support-wrap">
+          <button type="button" class="btn-support" id="btn-support" aria-expanded="false" aria-controls="support-panel">
+            <span class="btn-support-ico" aria-hidden="true">🪙</span>
+            Поддержать
+          </button>
+          <div class="about-support-panel" id="support-panel" hidden>
+            <p>Спасибо, что решили поддержать мой проект!</p>
+            <p>
+              Он полностью бесплатный. Если хотите выразить благодарность — можете отправить любую
+              сумму через Т‑Банк по номеру:
+            </p>
+            <p class="about-support-phone">
+              <a href="tel:+79776134508">+7-977-613-45-08</a>
+            </p>
+          </div>
+        </section>
+
         <p class="about-foot">
           <a class="btn" href="/">К выбору маршрута</a>
         </p>
       </main>
     </div>
+    <script>
+      ;(function () {
+        var btn = document.getElementById('btn-support')
+        var panel = document.getElementById('support-panel')
+        if (!btn || !panel) return
+        btn.addEventListener('click', function () {
+          var open = panel.hasAttribute('hidden')
+          if (open) {
+            panel.removeAttribute('hidden')
+            btn.setAttribute('aria-expanded', 'true')
+            panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+          } else {
+            panel.setAttribute('hidden', '')
+            btn.setAttribute('aria-expanded', 'false')
+          }
+        })
+      })()
+    </script>
     <script src="/yandex-metrika.js"></script>
   </body>
 </html>
