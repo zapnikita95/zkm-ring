@@ -111,19 +111,39 @@ def ensure_contrast(
     *,
     min_ratio: float = 4.5,
     large_text: bool = True,
+    allow_plate: bool = False,
 ) -> tuple[Image.Image, tuple[int, int, int], SampleReport]:
-    """Return (possibly scrimmed img, safe_fg, report).
+    """Return (img, safe_fg, report).
 
-    Strategy:
-    1) Warm accents (orange/gold) ALWAYS get a dark plate — never sit on photo pixels.
-    2) Other colors: if worst-case WCAG fails → dark/light scrim + safe fg.
+    Default (allow_plate=False): NEVER paint a text plate/scrim box.
+    Pick a readable fg (cream/white or near-black). Soft whole-frame veils
+    are the caller's job — not per-label rounded rectangles.
+
+    allow_plate=True: legacy path with dark/light plates (avoid for IG battle).
     """
     thresh = 3.0 if large_text else min_ratio
     accent = (int(fg[0]), int(fg[1]), int(fg[2]))
     warm = _is_warm_accent(accent)
     report = sample_region(img, box, accent, min_ratio=thresh)
 
-    # Warm on photo: force plate even if a lucky sample "passes"
+    if not allow_plate:
+        # No boxes. Prefer cream on dark photos; dark on bright; warm → peach/cream.
+        safe_fg = accent
+        if warm:
+            safe_fg = (255, 214, 160)
+        r = sample_region(img, box, safe_fg, min_ratio=thresh)
+        if not r.passes:
+            # flip to cream or near-black without painting a plate
+            cream = (244, 244, 245)
+            dark = (18, 20, 18)
+            r_c = sample_region(img, box, cream, min_ratio=thresh)
+            r_d = sample_region(img, box, dark, min_ratio=thresh)
+            if r_c.worst_ratio >= r_d.worst_ratio:
+                safe_fg, r = cream, r_c
+            else:
+                safe_fg, r = dark, r_d
+        return img, safe_fg, r
+
     if report.passes and not warm:
         return img, accent, report
 
@@ -142,11 +162,9 @@ def ensure_contrast(
             radius=28,
             fill=plate,
         )
-        # Accent on near-black plate; bump lightness if still weak
         plate_rgb = (12, 14, 12)
         safe_fg = accent
         if contrast_ratio(safe_fg, plate_rgb) < 4.5:
-            # push warm toward cream-peach
             safe_fg = (255, 200, 130) if warm else (244, 244, 245)
         if contrast_ratio(safe_fg, plate_rgb) < 4.5:
             safe_fg = (244, 244, 245)
