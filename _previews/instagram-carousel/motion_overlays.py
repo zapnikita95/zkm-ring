@@ -55,6 +55,8 @@ def stroke_text(draw, text, xy, fnt, fill, max_w, *, line_gap=1.1, stroke=5, ali
         lx = x
         if align == "center":
             lx = x + (max_w - int(draw.textlength(line, font=fnt))) // 2
+        elif align == "right":
+            lx = x + max_w - int(draw.textlength(line, font=fnt))
         for dx, dy in (
             (-stroke, 0),
             (stroke, 0),
@@ -118,32 +120,42 @@ def make_overlay(kind: str, out: Path) -> Path:
         d.text((48, 1260), "01 / 06", font=font(FONT_BOLD, 24), fill=MUTED)
 
     elif kind == "answer":
-        d.rectangle((BAR_X, 812, BAR_X + BAR_W, 1020), fill=GREEN)
-        y = stroke_text(d, "Живописный мост", (TEXT_X, 820), font(FONT_BLACK, 52), CREAM, W - TEXT_X - 48, stroke=5)
+        # S07 split: title top-left, body bottom — ≠ hook S01 and ≠ closed S02
+        d.rectangle((BAR_X, 120, BAR_X + BAR_W, 280), fill=GREEN)
+        stroke_text(d, "Живописный мост", (TEXT_X, 128), font(FONT_BLACK, 50), CREAM, W - TEXT_X - 48, stroke=5)
+        soft_bottom(d, 780, 160)
         stroke_text(
             d,
-            "Капсулу задумывали как ресторан в воздухе. Открыли в 2007.",
-            (TEXT_X, y + 36),
-            font(FONT_BOLD, 34),
+            "Капсулу под красной аркой задумывали как ресторан в воздухе — с видом на Москву-реку. Открыли в 2007; силуэт узнают даже без названия.",
+            (48, 900),
+            font(FONT_BOLD, 30),
             CREAM,
-            W - TEXT_X - 48,
+            W - 96,
             stroke=4,
-            line_gap=1.15,
+            line_gap=1.14,
         )
         d.text((48, 1260), "02 / 06", font=font(FONT_BOLD, 24), fill=MUTED)
 
     elif kind == "closed":
-        d.rectangle((BAR_X, 792, BAR_X + BAR_W, 1020), fill=(255, 176, 96, 255))
-        y = stroke_text(d, "Капсула закрыта", (TEXT_X, 800), font(FONT_BLACK, 52), CREAM, W - TEXT_X - 48, stroke=5)
+        # S02 bottom-right — different from answer S07
+        soft_bottom(d, 700, 170)
+        bar_x = W - 48 - BAR_W
+        d.rectangle((bar_x, 820, bar_x + BAR_W, 1100), fill=(255, 176, 96, 255))
+        max_w = 560
+        tx = W - 48 - max_w - 16
+        y = stroke_text(
+            d, "Капсула закрыта", (tx, 830), font(FONT_BLACK, 48), CREAM, max_w, stroke=5, align="right"
+        )
         stroke_text(
             d,
-            "Публику внутрь так и не пустили. Снаружи — точка для фото.",
-            (TEXT_X, y + 36),
-            font(FONT_BOLD, 34),
+            "Публику внутрь так и не пустили. Зато снаружи — одна из самых желанных точек для фото: «тарелка» держит кадр сама.",
+            (tx, y + 28),
+            font(FONT_BOLD, 30),
             GOLD,
-            W - TEXT_X - 48,
+            max_w,
             stroke=4,
-            line_gap=1.15,
+            line_gap=1.14,
+            align="right",
         )
         d.text((48, 1260), "03 / 06", font=font(FONT_BOLD, 24), fill=MUTED)
 
@@ -187,11 +199,11 @@ def make_overlay(kind: str, out: Path) -> Path:
 
         y = ink_text("Веломаршрут рядом", (TEXT_X, 160), font(FONT_BLACK, 48), W - TEXT_X - 48)
         ink_text(
-            "Мост видно с Зелёного кольца — маршрута мимо десятков парков и мест Москвы.",
-            (TEXT_X, y + 40),
-            font(FONT_BOLD, 34),
+            "Этот мост видно при прогулке по Зелёному кольцу — маршруту мимо десятков парков и достопримечательностей. Соберите свой отрезок.",
+            (TEXT_X, y + 36),
+            font(FONT_BOLD, 30),
             W - TEXT_X - 48,
-            line_gap=1.15,
+            line_gap=1.14,
             hw=2,
         )
         d.text((48, 1260), "05 / 06", font=font(FONT_BOLD, 24), fill=(80, 90, 80, 230))

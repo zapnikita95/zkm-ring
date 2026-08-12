@@ -1,0 +1,24 @@
+{
+  "slug": "zhivopisny",
+  "roles": [
+    "hook",
+    "about",
+    "emotion",
+    "fact",
+    "route",
+    "cta"
+  ],
+  "layouts": [
+    "S01",
+    "S09",
+    "S04",
+    "S05",
+    "S03",
+    "S08"
+  ],
+  "collages": [
+    "slide-02 S09 two-up",
+    "slide-03 S10 quad"
+  ],
+  "map": "slide-05 Carto + ring + pin"
+}

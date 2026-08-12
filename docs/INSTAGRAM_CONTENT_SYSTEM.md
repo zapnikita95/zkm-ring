@@ -72,14 +72,16 @@ Briefs: `docs/instagram/briefs/`. Шаблон: `docs/instagram/place-brief-TEMP
 
 ## 4. Скелет карусели + layouts
 
-Формат: **4:5 (1080×1350)**, 5–7 слайдов.
+Формат: **4:5 (1080×1350)**, 6 слайдов.
 
-Сюжет: HOOK → МЕСТО → ФОТО (цель + куда встать) → ВАУ-ФАКТ → НА КОЛЬЦЕ → CTA.
+**Роли:** 1 вовлечение → 2 об объекте → 3 эмоция → 4 взрывной факт → 5 маршрут → 6 зазывалочка.  
+Канон: [`docs/instagram/CAROUSEL_STRUCTURE.md`](instagram/CAROUSEL_STRUCTURE.md).  
+10 схем блоков: [`PLACEMENT_SCHEMAS.md`](instagram/PLACEMENT_SCHEMAS.md) + `demo-placement-schemas.html`.  
+Соседи ≠ одна схема. Фото: коллажи ≥2 кадра. Слайд 05 = карта сервиса.
 
-Копирайт: только **отрезок**, никогда **кусок**. Графика: map-pin / route, без прицела.  
-Углы текста: `layout_templates.py` (`T_BL`/`T_BR`/`T_TL`/`T_TR`/…).
+Копирайт: только **отрезок**, никогда **кусок**. Без «свайп» / «ванты» / «ВАУ-ФАКТ» на слайде.
 
-10 layouts — в skill. Инструмент непрерывного коллажа: **[SCRL](https://scrl.com/)**.
+Upload-эталон: `export/upload-zhivopisny/` · рендер `python3 render_zhivopisny_post.py`.
 
 ### CTA-пул (ротация на последнем слайде)
 
