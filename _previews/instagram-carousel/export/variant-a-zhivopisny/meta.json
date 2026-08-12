@@ -1,0 +1,19 @@
+{
+  "variant": "A",
+  "story": "zhivopisny-flying-saucer",
+  "banned": [
+    "кусок",
+    "свайп",
+    "ВАУ-ФАКТ"
+  ],
+  "text_x": 90,
+  "bar_gap": 32,
+  "slides": {
+    "1": "question only",
+    "2": "answer — restaurant plan + 2007",
+    "3": "capsule closed (fact)",
+    "4": "105 height + football compare graphic",
+    "5": "velo route nearby + green ring explained",
+    "6": "centered CTA"
+  }
+}
