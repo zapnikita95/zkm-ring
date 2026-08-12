@@ -11,7 +11,7 @@
 |-------|------|
 | **A_mixed** | Хук Ken Burns → живое видео моста → water-alive → дрон → sky drift → CTA |
 | **B_alive_stills** | Только фото, но все двигаются (zoom / drift / pulse / wave) |
-| **C_video_heavy** | Дрон + живое видео места + река; **слайд 05 = карта**, не клип |
+| **C_video_heavy** | Только клипы **этого** места (дрон/мост); **слайд 05 = карта**. Без чужой Москвы-реки |
 
 Смотреть: `_previews/instagram-carousel/demo-motion-carousels.html`
 

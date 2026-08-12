@@ -5,12 +5,9 @@
     "A · mixed (видео + оживлённые фото)": [
       "01-hook-kenburns.mp4",
       "02-answer-realvideo.mp4",
-      "02-answer-skydrift.mp4",
       "03-closed-water.mp4",
       "04-height-drone.mp4",
-      "04-height-ken.mp4",
       "05-route-map.mp4",
-      "05-route-skydrift.mp4",
       "06-cta-pulse.mp4"
     ],
     "B · только оживлённые фото": [
@@ -19,19 +16,14 @@
       "03-closed-water.mp4",
       "04-height-ken.mp4",
       "05-route-map.mp4",
-      "05-route-pulse.mp4",
       "06-cta-water.mp4"
     ],
-    "C · video-heavy (дрон + мост + река)": [
+    "C · video-heavy (только Живописный + карта)": [
       "01-hook-drone.mp4",
-      "01-hook-ken.mp4",
       "02-answer-realvideo.mp4",
-      "02-answer.mp4",
       "03-closed-realvideo.mp4",
-      "03-closed.mp4",
-      "04-height-moscow-river.mp4",
+      "04-height-drone.mp4",
       "05-route-map.mp4",
-      "05-route-skydrift.mp4",
       "06-cta-pulse.mp4"
     ]
   },
@@ -43,8 +35,7 @@
     ],
     "video_demo": [
       "yt-zhivopisny-short.mp4 (YouTube WJ7bwcTPBUU — demo only)",
-      "yt-zhivopisny-drone.mp4 (YouTube ZLUaz81C3LU — demo only)",
-      "moscow-river-raw.mp4 (Wikimedia Commons)"
+      "yt-zhivopisny-drone.mp4 (YouTube ZLUaz81C3LU — demo only)"
     ],
     "note": "YT clips gitignored; regenerate with yt-dlp. Animated stills are ours."
   }
