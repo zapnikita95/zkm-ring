@@ -250,8 +250,7 @@ code{{color:#d8b4fe}}
 </style></head><body>
 <h1>Motion-карусель: видео + оживлённые фото</h1>
 <p class="lead">
-Три пачки примеров. Надписи поверх движения. Без слова «свайп».<br/>
-Источники движения: Ken Burns / рябь-дыхание / дрейф неба / реальное видео Живописного (YT demo) + Москва-река (Wikimedia).<br/>
+Слайд <b>05</b> всегда карта сервиса (кольцо + пин). Только клипы Живописного — без чужой Москвы-реки.<br/>
 Рендер: <code>python3 render_motion_demos.py</code>
 </p>
 {''.join(sections)}
@@ -267,7 +266,7 @@ def main():
     still_pano = ASSETS / "bridge-pano.jpg"
     yt_short = VIDEO / "yt-zhivopisny-short.mp4"
     yt_drone = VIDEO / "yt-zhivopisny-drone.mp4"
-    river = VIDEO / "moscow-river-raw.mp4"
+    # moscow-river intentionally unused for Zhivopisny carousels
 
     tmp = OUT / "_tmp"
     tmp.mkdir(parents=True, exist_ok=True)
@@ -317,46 +316,97 @@ def main():
     compose(map5, "route", a / "05-route-map.mp4")
     # 6 cta — pulse
     compose(pulse1, "cta", a / "06-cta-pulse.mp4")
-    packs["A · mixed (видео + оживлённые фото)"] = sorted(a.glob("*.mp4"))
+    a_files = [
+        a / "01-hook-kenburns.mp4",
+        a / ("02-answer-realvideo.mp4" if yt_short.exists() else "02-answer-skydrift.mp4"),
+        a / "03-closed-water.mp4",
+        a / ("04-height-drone.mp4" if yt_drone.exists() else "04-height-ken.mp4"),
+        a / "05-route-map.mp4",
+        a / "06-cta-pulse.mp4",
+    ]
+    keep = {p.name for p in a_files}
+    for stale in a.glob("*.mp4"):
+        if stale.name not in keep:
+            stale.unlink()
+    packs["A · mixed (видео + оживлённые фото)"] = a_files
 
     # ========== B: ALL ALIVE STILLS ==========
     b = OUT / "B_alive_stills"
     b.mkdir(parents=True, exist_ok=True)
-    compose(ken1, "hook", b / "01-hook-kenburns.mp4")
-    compose(sky1, "answer", b / "02-answer-skydrift.mp4")
-    compose(water1, "closed", b / "03-closed-water.mp4")
-    compose(ken_detail, "height", b / "04-height-ken.mp4")
-    compose(map5, "route", b / "05-route-map.mp4")
-    # CTA on water breathe
-    compose(water1, "cta", b / "06-cta-water.mp4")
-    packs["B · только оживлённые фото"] = sorted(b.glob("*.mp4"))
+    for stale in b.glob("*.mp4"):
+        stale.unlink()
+    b_files = [
+        b / "01-hook-kenburns.mp4",
+        b / "02-answer-skydrift.mp4",
+        b / "03-closed-water.mp4",
+        b / "04-height-ken.mp4",
+        b / "05-route-map.mp4",
+        b / "06-cta-water.mp4",
+    ]
+    compose(ken1, "hook", b_files[0])
+    compose(sky1, "answer", b_files[1])
+    compose(water1, "closed", b_files[2])
+    compose(ken_detail, "height", b_files[3])
+    compose(map5, "route", b_files[4])
+    compose(water1, "cta", b_files[5])
+    packs["B · только оживлённые фото"] = b_files
 
-    # ========== C: VIDEO-HEAVY ==========
+    # ========== C: VIDEO-HEAVY (only Zhivopisny footage) ==========
     c = OUT / "C_video_heavy"
     c.mkdir(parents=True, exist_ok=True)
+    # wipe stale leftovers so demo HTML never shows old moscow-river / skydrift
+    for stale in c.glob("*.mp4"):
+        stale.unlink()
+    c_files: list[Path] = []
     if yt_drone.exists():
         raw = tmp / "drone-hook.mp4"
         trim_crop(yt_drone, raw, ss=0.5, t=DUR)
-        compose(raw, "hook", c / "01-hook-drone.mp4")
+        out = c / "01-hook-drone.mp4"
+        compose(raw, "hook", out)
+        c_files.append(out)
     else:
-        compose(ken1, "hook", c / "01-hook-ken.mp4")
+        out = c / "01-hook-ken.mp4"
+        compose(ken1, "hook", out)
+        c_files.append(out)
     if yt_short.exists():
-        raw = tmp / "yt2.mp4"
-        trim_crop(yt_short, raw, ss=4.0, t=DUR)
-        compose(raw, "answer", c / "02-answer-realvideo.mp4")
+        trim_crop(yt_short, tmp / "yt2.mp4", ss=4.0, t=DUR)
+        out = c / "02-answer-realvideo.mp4"
+        compose(tmp / "yt2.mp4", "answer", out)
+        c_files.append(out)
         trim_crop(yt_short, tmp / "yt3.mp4", ss=8.0, t=DUR)
-        compose(tmp / "yt3.mp4", "closed", c / "03-closed-realvideo.mp4")
+        out = c / "03-closed-realvideo.mp4"
+        compose(tmp / "yt3.mp4", "closed", out)
+        c_files.append(out)
     else:
-        compose(sky1, "answer", c / "02-answer.mp4")
-        compose(water1, "closed", c / "03-closed.mp4")
-    if river.exists():
-        trim_crop(river, tmp / "river.mp4", ss=0, t=min(DUR, 5))
-        compose(tmp / "river.mp4", "height", c / "04-height-moscow-river.mp4")
+        out = c / "02-answer.mp4"
+        compose(sky1, "answer", out)
+        c_files.append(out)
+        out = c / "03-closed.mp4"
+        compose(water1, "closed", out)
+        c_files.append(out)
+    # Height: ONLY Zhivopisny — drone second cut, else short, else ken on bridge detail
+    # Never moscow-river (Храм Христа / чужая Москва)
+    if yt_drone.exists():
+        trim_crop(yt_drone, tmp / "drone-height.mp4", ss=12.0, t=DUR)
+        out = c / "04-height-drone.mp4"
+        compose(tmp / "drone-height.mp4", "height", out)
+        c_files.append(out)
+    elif yt_short.exists():
+        trim_crop(yt_short, tmp / "yt-height.mp4", ss=10.0, t=DUR)
+        out = c / "04-height-realvideo.mp4"
+        compose(tmp / "yt-height.mp4", "height", out)
+        c_files.append(out)
     else:
-        compose(ken_detail, "height", c / "04-height.mp4")
-    compose(map5, "route", c / "05-route-map.mp4")
-    compose(pulse1, "cta", c / "06-cta-pulse.mp4")
-    packs["C · video-heavy (дрон + мост + река)"] = sorted(c.glob("*.mp4"))
+        out = c / "04-height-ken.mp4"
+        compose(ken_detail, "height", out)
+        c_files.append(out)
+    out = c / "05-route-map.mp4"
+    compose(map5, "route", out)
+    c_files.append(out)
+    out = c / "06-cta-pulse.mp4"
+    compose(pulse1, "cta", out)
+    c_files.append(out)
+    packs["C · video-heavy (только Живописный + карта)"] = c_files
 
     write_demo_html(packs)
     meta = {
@@ -368,8 +418,7 @@ def main():
             "video_demo": [
                 "yt-zhivopisny-short.mp4 (YouTube WJ7bwcTPBUU — demo only)",
                 "yt-zhivopisny-drone.mp4 (YouTube ZLUaz81C3LU — demo only)",
-                "moscow-river-raw.mp4 (Wikimedia Commons)",
-            ],
+                            ],
             "note": "YT clips gitignored; regenerate with yt-dlp. Animated stills are ours.",
         },
     }
