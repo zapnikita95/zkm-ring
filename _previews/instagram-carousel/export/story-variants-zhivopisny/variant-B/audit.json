@@ -12,10 +12,10 @@
     "body: 4.99:1 OK"
   ],
   "04": [
-    "number: 1.82:1 WEAK",
-    "unit: 6.10:1 OK",
-    "stats: 5.01:1 OK",
-    "source: 4.34:1 WEAK"
+    "number: 1.73:1 WEAK",
+    "unit: 1.82:1 WEAK",
+    "stats: 8.67:1 OK",
+    "source: 9.46:1 OK"
   ],
   "05": [
     "title: 9.04:1 OK",
