@@ -197,10 +197,10 @@ def draw_football_compare(base: Image.Image) -> Image.Image:
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     # field card bottom-right
-    fx0, fy0, fx1, fy1 = 560, 780, 1020, 1180
+    fx0, fy0, fx1, fy1 = 640, 840, 1036, 1230
     d.rounded_rectangle([fx0, fy0, fx1, fy1], radius=20, fill=(16, 22, 16, 230), outline=(*GREEN, 220), width=3)
     # mini pitch
-    px0, py0, px1, py1 = 610, 860, 970, 1080
+    px0, py0, px1, py1 = 680, 930, 996, 1135
     d.rounded_rectangle([px0, py0, px1, py1], radius=8, fill=(34, 120, 60, 255))
     # pitch lines
     d.rectangle([px0 + 8, py0 + 8, px1 - 8, py1 - 8], outline=(255, 255, 255, 200), width=3)
@@ -209,8 +209,8 @@ def draw_football_compare(base: Image.Image) -> Image.Image:
     cx = (px0 + px1) // 2
     d.ellipse([cx - 28, mid - 28, cx + 28, mid + 28], outline=(255, 255, 255, 180), width=2)
     # arrow up = height metaphor
-    d.line([(540, 1100), (540, 820)], fill=(*WARM, 255), width=6)
-    d.polygon([(540, 800), (520, 840), (560, 840)], fill=(*WARM, 255))
+    d.line([(620, 1180), (620, 880)], fill=(*WARM, 255), width=6)
+    d.polygon([(620, 860), (600, 900), (640, 900)], fill=(*WARM, 255))
     d.text((fx0 + 24, fy0 + 18), "≈ 1 футбольное поле", font=font(FONT_BOLD, 28), fill=CREAM)
     d.text((fx0 + 24, fy0 + 52), "поставленное на попа", font=font(FONT_REG, 24), fill=GOLD)
     return Image.alpha_composite(base.convert("RGBA"), layer)
