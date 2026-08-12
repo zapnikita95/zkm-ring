@@ -220,17 +220,33 @@ def draw_safe(
     audit: list,
     align="left",
     line_gap=1.08,
+    force_fg: bool = False,
 ) -> tuple[Image.Image, int]:
+    """force_fg=True: never flip to black (display numbers on photo)."""
     assert_no_banned(text, label)
     probe = ImageDraw.Draw(base)
     tw, th = text_size(probe, text, fnt, max_w, line_gap)
     x, y = xy
     box = (x, y, x + (max_w if align == "right" else max(tw, 40)), y + max(th, fnt.size))
-    img, fg, report = ensure_contrast(base, box, prefer_fg, large_text=fnt.size >= 36, allow_plate=False)
+    if force_fg:
+        fg = prefer_fg
+        report = sample_region(base, box, fg, min_ratio=3.0)
+        img = base
+    else:
+        img, fg, report = ensure_contrast(base, box, prefer_fg, large_text=fnt.size >= 36, allow_plate=False)
+        # Never paint near-black display text on photos — stroke carries contrast
+        if relative_luma(fg) < 0.35:
+            fg = CREAM if relative_luma(prefer_fg) > 0.35 else prefer_fg
     audit.append(f"{label}: {report.worst_ratio:.2f}:1 {'OK' if report.passes else 'WEAK'}")
     d = ImageDraw.Draw(img, "RGBA")
-    y2 = draw_text_stroke(d, text, xy, fnt, fg, max_w, align=align, line_gap=line_gap)
+    stroke = 7 if fnt.size >= 80 else 5
+    y2 = draw_text_stroke(d, text, xy, fnt, fg, max_w, align=align, line_gap=line_gap, stroke=stroke)
     return img, y2
+
+
+def relative_luma(rgb) -> float:
+    r, g, b = rgb[0] / 255, rgb[1] / 255, rgb[2] / 255
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
 def frame_corners(draw, color=(*CREAM, 90), inset=36, length=70, width=3):
@@ -496,76 +512,76 @@ def render_variant(v: Variant, strip: Image.Image, detail: Image.Image) -> dict:
     c4 = COPY[4]
 
     # Fixed vertical advances — glyph metrics alone leave "105" visually crushed into unit
-    GAP_NUM_UNIT = 96
-    GAP_UNIT_STATS = 56
-    GAP_STATS_SRC = 48
+    GAP_NUM_UNIT = 110
+    GAP_UNIT_STATS = 72
+    GAP_STATS_SRC = 52
 
     if v.giant_center_fact:
         fnum = font(FONT_BLACK, 300)
         probe = ImageDraw.Draw(s_rgb)
         nw = int(probe.textlength(c4["number"], font=fnum))
         nx = (W - nw) // 2
-        num_y = 260
+        num_y = 240
         s_rgb, _ = draw_safe(
             s_rgb, c4["number"], (nx, num_y), fnum, CREAM, nw + 20,
-            label="number", audit=audit, line_gap=1.0,
+            label="number", audit=audit, line_gap=1.0, force_fg=True,
         )
         y = num_y + 300 + GAP_NUM_UNIT
         s_rgb, _ = draw_safe(
             s_rgb, c4["unit"], (64, y), font(FONT_BLACK, 56), CREAM, W - 128,
-            label="unit", audit=audit,
+            label="unit", audit=audit, force_fg=True,
         )
         y = y + 56 + GAP_UNIT_STATS
         s_rgb, _ = draw_safe(
             s_rgb, c4["stats"], (64, y), font(FONT_BOLD, 34), GOLD, W - 128,
-            label="stats", audit=audit,
+            label="stats", audit=audit, force_fg=True,
         )
         y = y + 34 + GAP_STATS_SRC
         s_rgb, _ = draw_safe(
             s_rgb, c4["source"], (64, y), font(FONT_REG, 24), MUTED, W - 128,
-            label="source", audit=audit,
+            label="source", audit=audit, force_fg=True,
         )
     elif v.split_fact:
-        num_y = 240
+        num_y = 220
         s_rgb, _ = draw_safe(
-            s_rgb, c4["number"], (36, num_y), font(FONT_BLACK, 260), CREAM, 720,
-            label="number", audit=audit, line_gap=1.0,
+            s_rgb, c4["number"], (36, num_y), font(FONT_BLACK, 280), CREAM, 720,
+            label="number", audit=audit, line_gap=1.0, force_fg=True,
         )
-        y = num_y + 260 + GAP_NUM_UNIT
+        y = num_y + 280 + GAP_NUM_UNIT
         s_rgb, _ = draw_safe(
             s_rgb, c4["unit"], (48, y), font(FONT_BLACK, 52), CREAM, 700,
-            label="unit", audit=audit,
+            label="unit", audit=audit, force_fg=True,
         )
         s_rgb, y = draw_safe(
-            s_rgb, c4["stats"], (48, 1000), font(FONT_BOLD, 32), GOLD, W - 96,
-            label="stats", audit=audit, align="right",
+            s_rgb, c4["stats"], (48, 1020), font(FONT_BOLD, 32), GOLD, W - 96,
+            label="stats", audit=audit, align="right", force_fg=True,
         )
         s_rgb, _ = draw_safe(
             s_rgb, c4["source"], (48, y + GAP_STATS_SRC), font(FONT_REG, 24), MUTED, W - 96,
-            label="source", audit=audit, align="right",
+            label="source", audit=audit, align="right", force_fg=True,
         )
         ImageDraw.Draw(s_rgb, "RGBA").rectangle((48, 280, 58, 560), fill=WARM)
     else:
-        num_size = 260
-        num_y = slot.y
+        num_size = 280
+        num_y = min(slot.y, 320)
         s_rgb, _ = draw_safe(
             s_rgb, c4["number"], (slot.x, num_y), font(FONT_BLACK, num_size), CREAM, slot.max_w,
-            label="number", audit=audit, line_gap=1.0, align=slot.align,
+            label="number", audit=audit, line_gap=1.0, align=slot.align, force_fg=True,
         )
         y = num_y + num_size + GAP_NUM_UNIT
         s_rgb, _ = draw_safe(
             s_rgb, c4["unit"], (slot.x, y), font(FONT_BLACK, 54), CREAM, slot.max_w,
-            label="unit", audit=audit, align=slot.align,
+            label="unit", audit=audit, align=slot.align, force_fg=True,
         )
         y = y + 54 + GAP_UNIT_STATS
         s_rgb, _ = draw_safe(
             s_rgb, c4["stats"], (slot.x, y), font(FONT_BOLD, 34), GOLD, slot.max_w,
-            label="stats", audit=audit, align=slot.align,
+            label="stats", audit=audit, align=slot.align, force_fg=True,
         )
         y = y + 34 + GAP_STATS_SRC
         s_rgb, _ = draw_safe(
             s_rgb, c4["source"], (slot.x, y), font(FONT_REG, 24), MUTED, slot.max_w,
-            label="source", audit=audit, align=slot.align,
+            label="source", audit=audit, align=slot.align, force_fg=True,
         )
         if v.frame_text:
             text_frame(ImageDraw.Draw(s_rgb, "RGBA"), (slot.x, num_y, slot.x + 700, y + 40))
