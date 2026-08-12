@@ -14,14 +14,16 @@ import json
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
+from graphics import cover_crop_strict, isometric_football_pitch, paste_rgba
 from layout_templates import assert_no_banned
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 OUT = ROOT / "export" / "variant-a-zhivopisny"
 W, H = 1080, 1350
+MAP_POI = "park-krylatskoe-bridge"
 
 GREEN = (31, 143, 74)
 CREAM = (244, 244, 245)
@@ -52,7 +54,8 @@ def load(name: str) -> Image.Image:
 
 
 def cover_crop(img: Image.Image, w: int, h: int, center=(0.5, 0.42)) -> Image.Image:
-    return ImageOps.fit(img, (w, h), method=Image.Resampling.LANCZOS, centering=center)
+    """Uniform scale + crop only — never non-uniform stretch."""
+    return cover_crop_strict(img, w, h, center)
 
 
 def grade(img: Image.Image, c=1.18, col=1.12, s=1.2) -> Image.Image:
@@ -136,7 +139,7 @@ def draw_stroke(draw, text, xy, fnt, fill, max_w, *, line_gap=1.1, stroke=5, ali
         lx = x
         if align == "center":
             lx = x + (max_w - int(draw.textlength(line, font=fnt))) // 2
-        draw.text((lx + 2, yy + 3), line, font=fnt, fill=(0, 0, 0, 140))
+        # outline only — no soft glow / shaded plate behind text
         for dx, dy in (
             (-stroke, 0),
             (stroke, 0),
@@ -193,65 +196,27 @@ def save(img: Image.Image, idx: int):
 
 
 def draw_football_compare(base: Image.Image) -> Image.Image:
-    """Illustrated comparison: 105 m height ≈ football field length upright."""
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    # field card bottom-right
-    fx0, fy0, fx1, fy1 = 640, 840, 1036, 1230
-    d.rounded_rectangle([fx0, fy0, fx1, fy1], radius=20, fill=(16, 22, 16, 230), outline=(*GREEN, 220), width=3)
-    # mini pitch
-    px0, py0, px1, py1 = 680, 930, 996, 1135
-    d.rounded_rectangle([px0, py0, px1, py1], radius=8, fill=(34, 120, 60, 255))
-    # pitch lines
-    d.rectangle([px0 + 8, py0 + 8, px1 - 8, py1 - 8], outline=(255, 255, 255, 200), width=3)
-    mid = (py0 + py1) // 2
-    d.line([(px0 + 8, mid), (px1 - 8, mid)], fill=(255, 255, 255, 180), width=2)
-    cx = (px0 + px1) // 2
-    d.ellipse([cx - 28, mid - 28, cx + 28, mid + 28], outline=(255, 255, 255, 180), width=2)
-    # arrow up = height metaphor
-    d.line([(620, 1180), (620, 880)], fill=(*WARM, 255), width=6)
-    d.polygon([(620, 860), (600, 900), (640, 900)], fill=(*WARM, 255))
-    d.text((fx0 + 24, fy0 + 18), "≈ 1 футбольное поле", font=font(FONT_BOLD, 28), fill=CREAM)
-    d.text((fx0 + 24, fy0 + 52), "поставленное на попа", font=font(FONT_REG, 24), fill=GOLD)
-    return Image.alpha_composite(base.convert("RGBA"), layer)
+    """Isometric pitch icon — no frame, no arrow, no caption card."""
+    pitch = isometric_football_pitch(540)
+    x = W - pitch.width - 36
+    y = H - pitch.height - 70
+    return paste_rgba(base, pitch, (x, y))
+
+
+def ensure_poi_map(landmark_id: str = MAP_POI) -> Path:
+    path = ASSETS / f"map-{landmark_id}.png"
+    if path.exists() and path.stat().st_size > 20_000:
+        return path
+    from bake_instagram_poi_map import bake
+
+    return bake(landmark_id)
 
 
 def slide_map_graphic() -> Image.Image:
-    """Simple drawn ring + pin — variety vs photo clone."""
-    img = Image.new("RGB", (W, H), (18, 22, 18))
-    # soft gradient blobs
-    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    od = ImageDraw.Draw(overlay)
-    for i in range(12):
-        r = 180 + i * 40
-        od.ellipse([W // 2 - r, H // 2 - r - 40, W // 2 + r, H // 2 + r - 40], outline=(*GREEN, 25 + i * 4), width=3)
-    # ring oval
-    od.ellipse([120, 280, W - 120, 1100], outline=(*GREEN, 180), width=14)
-    od.ellipse([140, 300, W - 140, 1080], outline=(*GREEN, 60), width=4)
-    # pin near NW (approx Serebryany Bor / bridge zone on a decorative oval)
-    pin_x, pin_y = 280, 420
-    od.ellipse([pin_x - 22, pin_y - 22, pin_x + 22, pin_y + 22], fill=(*WARM, 255))
-    od.ellipse([pin_x - 10, pin_y - 10, pin_x + 10, pin_y + 10], fill=(255, 255, 255, 255))
-    od.line([(pin_x, pin_y + 22), (pin_x, pin_y + 70)], fill=(*WARM, 220), width=5)
-    img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
-    # faint photo texture from pano in corner
-    try:
-        pano = grade(cover_crop(load("bridge-pano.jpg"), 480, 600, (0.6, 0.4)), 1.1, 0.9, 1.0)
-        pano = ImageEnhance.Brightness(pano).enhance(0.35)
-        img.paste(pano, (W - 500, H - 640))
-        # blend left edge
-        fade = Image.new("RGBA", (480, 600), (0, 0, 0, 0))
-        fd = ImageDraw.Draw(fade)
-        for x in range(80):
-            fd.rectangle([x, 0, x + 1, 600], fill=(18, 22, 18, int(255 * (1 - x / 80))))
-        tmp = img.convert("RGBA")
-        patch = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        patch.paste(pano.convert("RGBA"), (W - 500, H - 640))
-        tmp = Image.alpha_composite(tmp, patch)
-        img = tmp.convert("RGB")
-    except OSError:
-        pass
-    return img
+    """Real service map (Carto Voyager + ring) with POI pin — never fake radar."""
+    ensure_poi_map(MAP_POI)
+    raw = load(f"map-{MAP_POI}.png")
+    return cover_crop(raw, W, H, (0.5, 0.5))
 
 
 def main():
@@ -354,7 +319,7 @@ def main():
     y = y + 36
     draw_stroke(
         d,
-        "72 ванты · пролёт 409,5 м · Wikipedia",
+        "Пролёт 409,5 м · Wikipedia",
         (TEXT_X, min(y, 1180)),
         font(FONT_REG, 24),
         MUTED,
@@ -364,23 +329,40 @@ def main():
     progress(d, 4)
     save(s.convert("RGB"), 4)
 
-    # ========== 5 — route intro (drawn ring + photo) ==========
+    # ========== 5 — real ring map + POI pin ==========
     s = slide_map_graphic().convert("RGBA")
     d = ImageDraw.Draw(s, "RGBA")
-    frame_corners(d, color=(*GREEN, 100))
+    frame_corners(d, color=(*GREEN, 140))
     watermark(d)
-    ty = 160
+    ty = 140
     accent_bar(d, ty - 4, 260)
-    y = draw_stroke(d, "Веломаршрут рядом", (TEXT_X, ty), font(FONT_BLACK, 52), CREAM, W - TEXT_X - 48, stroke=5)
-    y = draw_stroke(
-        d,
+    # Dark ink on light Carto — thin cream halo, no black plate / heavy stroke mud
+    ink = (18, 22, 18, 255)
+    halo = (255, 255, 255, 230)
+
+    def draw_ink(text, xy, fnt, max_w, *, line_gap=1.12, halo_w=3):
+        assert_no_banned(text)
+        x, y0 = xy
+        lines = wrap(d, text, fnt, max_w)
+        lh = int(fnt.size * line_gap)
+        for i, line in enumerate(lines):
+            yy = y0 + i * lh
+            for dx, dy in (
+                (-halo_w, 0), (halo_w, 0), (0, -halo_w), (0, halo_w),
+                (-halo_w, -halo_w), (halo_w, halo_w), (-halo_w, halo_w), (halo_w, -halo_w),
+            ):
+                d.text((x + dx, yy + dy), line, font=fnt, fill=halo)
+            d.text((x, yy), line, font=fnt, fill=ink)
+        return y0 + len(lines) * lh
+
+    y = draw_ink("Веломаршрут рядом", (TEXT_X, ty), font(FONT_BLACK, 52), W - TEXT_X - 48)
+    y = draw_ink(
         "Этот мост видно при прогулке по Зелёному кольцу — маршруту мимо десятков парков и достопримечательностей Москвы.",
-        (TEXT_X, y + 44),
+        (TEXT_X, y + 40),
         font(FONT_BOLD, 34),
-        CREAM,
         W - TEXT_X - 48,
-        stroke=4,
         line_gap=1.18,
+        halo_w=2,
     )
     progress(d, 5)
     save(s.convert("RGB"), 5)
@@ -454,7 +436,7 @@ def main():
             "1": "question only",
             "2": "answer — restaurant plan + 2007",
             "3": "capsule closed (fact)",
-            "4": "105 height + football compare graphic",
+            "4": "105 height + isometric football pitch (no frame/arrow)",
             "5": "velo route nearby + green ring explained",
             "6": "centered CTA",
         },

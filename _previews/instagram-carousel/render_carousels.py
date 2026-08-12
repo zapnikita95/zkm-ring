@@ -232,7 +232,7 @@ def render_bridge():
     d.text((56, 700), "метров арки", font=font(FONT_BLACK, 56), fill=CREAM)
     draw_text_block(
         d,
-        "72 ванты · пролёт 409,5 м · открыт 2007",
+        "пролёт 409,5 м · открыт 2007",
         (56, 780),
         font(FONT_BOLD, 36),
         (200, 230, 200),

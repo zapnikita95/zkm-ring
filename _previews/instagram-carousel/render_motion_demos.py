@@ -14,7 +14,9 @@ import json
 import subprocess
 from pathlib import Path
 
+from graphics import cover_crop_strict
 from motion_overlays import make_overlay
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
@@ -23,6 +25,7 @@ OUT = ROOT / "export" / "motion-demos"
 W, H = 1080, 1350
 FPS = 25
 DUR = 4.5  # seconds per slide
+MAP_POI = "park-krylatskoe-bridge"
 
 
 def run(cmd: list[str]) -> None:
@@ -65,49 +68,69 @@ def overlay_on(video: Path, overlay_png: Path, out: Path, *, t: float | None = N
     run(cmd)
 
 
+def cover_still(src: Path, out: Path, *, center=(0.5, 0.42)) -> Path:
+    """Write exact 1080×1350 JPEG via uniform cover-crop. Guard against stretch."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img = Image.open(src).convert("RGB")
+    cover_crop_strict(img, W, H, center).save(out, "JPEG", quality=94, optimize=True)
+    return out
+
+
+def ensure_map_still() -> Path:
+    mapped = ASSETS / f"map-{MAP_POI}.png"
+    if not mapped.exists() or mapped.stat().st_size < 20_000:
+        from bake_instagram_poi_map import bake
+
+        bake(MAP_POI)
+    still = OUT / "_tmp" / "map-poi-cover.jpg"
+    return cover_still(mapped, still, center=(0.5, 0.5))
+
+
+def still_video(still: Path, out: Path) -> None:
+    """Hold a still as video without any scale distortion."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    run(
+        [
+            "ffmpeg", "-y", "-loop", "1", "-i", str(still),
+            "-vf", f"scale={W}:{H}:flags=lanczos,setsar=1,fps={FPS}",
+            "-t", str(DUR), "-an", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+            "-preset", "fast", "-crf", "20", str(out),
+        ]
+    )
+
+
 def ken_burns(still: Path, out: Path, *, zoom_end: float = 1.18, x_expr: str = "iw/2-(iw/zoom/2)", y_expr: str = "ih/2-(ih/zoom/2)") -> None:
-    """Slow push-in on a still → 4:5 video."""
+    """Slow push-in on a *already cover-cropped* 4:5 still — never stretch wide panos."""
     out.parent.mkdir(parents=True, exist_ok=True)
     frames = int(DUR * FPS)
-    # Pre-scale large enough for zoom
+    # Pre-cover to portrait so zoompan crop aspect == output aspect
+    covered = out.parent / (still.stem + "-cover.jpg")
+    cover_still(still, covered)
+    # Extra headroom for zoom via scale-up of the square-ish portrait
+    zpad = max(zoom_end, 1.05)
+    vw, vh = int(W * zpad) + 4, int(H * zpad) + 4
     vf = (
-        f"scale=2400:-2,"
+        f"scale={vw}:{vh}:flags=lanczos,"
         f"zoompan=z='min(1+({zoom_end}-1)*on/{frames},{zoom_end})':"
         f"x='{x_expr}':y='{y_expr}':d={frames}:s={W}x{H}:fps={FPS},"
         f"setsar=1"
     )
     run(
         [
-            "ffmpeg",
-            "-y",
-            "-loop",
-            "1",
-            "-i",
-            str(still),
-            "-vf",
-            vf,
-            "-t",
-            str(DUR),
-            "-an",
-            "-c:v",
-            "libx264",
-            "-pix_fmt",
-            "yuv420p",
-            "-preset",
-            "fast",
-            "-crf",
-            "20",
-            str(out),
+            "ffmpeg", "-y", "-loop", "1", "-i", str(covered),
+            "-vf", vf, "-t", str(DUR), "-an", "-c:v", "libx264",
+            "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "20", str(out),
         ]
     )
 
 
 def water_alive(still: Path, out: Path) -> None:
-    """Still with wave sway + light shimmer (water/air feel)."""
+    """Still with wave sway + light shimmer — input cover-cropped first."""
     out.parent.mkdir(parents=True, exist_ok=True)
+    covered = out.parent / (still.stem + "-water-cover.jpg")
+    cover_still(still, covered)
     vf = (
-        f"scale={W+40}:{H+40}:force_original_aspect_ratio=increase,"
-        f"crop={W+40}:{H+40},"
+        f"scale={W+40}:{H+40}:flags=lanczos,"
         f"crop={W}:{H}:"
         f"'20+12*sin(2*PI*t*0.65)':"
         f"'20+8*sin(2*PI*t*0.5)',"
@@ -116,98 +139,52 @@ def water_alive(still: Path, out: Path) -> None:
     )
     run(
         [
-            "ffmpeg",
-            "-y",
-            "-loop",
-            "1",
-            "-i",
-            str(still),
-            "-vf",
-            vf,
-            "-t",
-            str(DUR),
-            "-an",
-            "-c:v",
-            "libx264",
-            "-pix_fmt",
-            "yuv420p",
-            "-preset",
-            "fast",
-            "-crf",
-            "20",
-            str(out),
+            "ffmpeg", "-y", "-loop", "1", "-i", str(covered),
+            "-vf", vf, "-t", str(DUR), "-an", "-c:v", "libx264",
+            "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "20", str(out),
         ]
     )
 
 
 def sky_drift(still: Path, out: Path) -> None:
-    """Horizontal drift (sky/clouds feel) across a wide still."""
+    """Horizontal drift on cover-cropped still (no wide→portrait stretch)."""
     out.parent.mkdir(parents=True, exist_ok=True)
+    covered = out.parent / (still.stem + "-sky-cover.jpg")
+    img = Image.open(still).convert("RGB")
+    cover_crop_strict(img, W + 120, H, (0.45, 0.35)).save(covered, "JPEG", quality=94)
     frames = int(DUR * FPS)
+    # zoompan with z=1: pan uses `on`; output aspect locked to s=WxH
     vf = (
-        f"scale=-2:{H},"
-        f"zoompan=z='1.05':"
-        f"x='(iw-iw/zoom)*on/{frames}':"
-        f"y='(ih-ih/zoom)/3':"
+        f"zoompan=z='1':"
+        f"x='(iw-ow)*on/{frames}':"
+        f"y='(ih-oh)/2':"
         f"d={frames}:s={W}x{H}:fps={FPS},"
         f"setsar=1"
     )
     run(
         [
-            "ffmpeg",
-            "-y",
-            "-loop",
-            "1",
-            "-i",
-            str(still),
-            "-vf",
-            vf,
-            "-t",
-            str(DUR),
-            "-an",
-            "-c:v",
-            "libx264",
-            "-pix_fmt",
-            "yuv420p",
-            "-preset",
-            "fast",
-            "-crf",
-            "20",
-            str(out),
+            "ffmpeg", "-y", "-loop", "1", "-i", str(covered),
+            "-vf", vf, "-t", str(DUR), "-an", "-c:v", "libx264",
+            "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "20", str(out),
         ]
     )
 
 
 def pulse_light(still: Path, out: Path) -> None:
-    """Breathing light / sunset flicker on still."""
+    """Breathing light on cover-cropped still."""
     out.parent.mkdir(parents=True, exist_ok=True)
+    covered = out.parent / (still.stem + "-pulse-cover.jpg")
+    cover_still(still, covered)
     vf = (
-        f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+        f"scale={W}:{H}:flags=lanczos,"
         f"eq=brightness='0.03*sin(2*PI*t*0.45)':contrast='1+0.04*sin(2*PI*t*0.25)',"
         f"setsar=1,fps={FPS}"
     )
     run(
         [
-            "ffmpeg",
-            "-y",
-            "-loop",
-            "1",
-            "-i",
-            str(still),
-            "-vf",
-            vf,
-            "-t",
-            str(DUR),
-            "-an",
-            "-c:v",
-            "libx264",
-            "-pix_fmt",
-            "yuv420p",
-            "-preset",
-            "fast",
-            "-crf",
-            "20",
-            str(out),
+            "ffmpeg", "-y", "-loop", "1", "-i", str(covered),
+            "-vf", vf, "-t", str(DUR), "-an", "-c:v", "libx264",
+            "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "20", str(out),
         ]
     )
 
@@ -308,6 +285,11 @@ def main():
     pulse_light(still_pano, pulse1)
     ken_burns(still_detail, ken_detail, zoom_end=1.14, x_expr="iw*0.55-(iw/zoom/2)", y_expr="ih*0.2")
 
+    # Slide 5 = real service map (static). Never video stretch of sunset/pano.
+    map_still = ensure_map_still()
+    map5 = tmp / "map-slide5.mp4"
+    still_video(map_still, map5)
+
     packs: dict[str, list[Path]] = {}
 
     # ========== A: MIXED — real video + alive stills ==========
@@ -332,7 +314,7 @@ def main():
     else:
         compose(ken_detail, "height", a / "04-height-ken.mp4")
     # 5 route — sky drift
-    compose(sky1, "route", a / "05-route-skydrift.mp4")
+    compose(map5, "route", a / "05-route-map.mp4")
     # 6 cta — pulse
     compose(pulse1, "cta", a / "06-cta-pulse.mp4")
     packs["A · mixed (видео + оживлённые фото)"] = sorted(a.glob("*.mp4"))
@@ -344,7 +326,7 @@ def main():
     compose(sky1, "answer", b / "02-answer-skydrift.mp4")
     compose(water1, "closed", b / "03-closed-water.mp4")
     compose(ken_detail, "height", b / "04-height-ken.mp4")
-    compose(pulse1, "route", b / "05-route-pulse.mp4")
+    compose(map5, "route", b / "05-route-map.mp4")
     # CTA on water breathe
     compose(water1, "cta", b / "06-cta-water.mp4")
     packs["B · только оживлённые фото"] = sorted(b.glob("*.mp4"))
@@ -372,7 +354,7 @@ def main():
         compose(tmp / "river.mp4", "height", c / "04-height-moscow-river.mp4")
     else:
         compose(ken_detail, "height", c / "04-height.mp4")
-    compose(sky1, "route", c / "05-route-skydrift.mp4")
+    compose(map5, "route", c / "05-route-map.mp4")
     compose(pulse1, "cta", c / "06-cta-pulse.mp4")
     packs["C · video-heavy (дрон + мост + река)"] = sorted(c.glob("*.mp4"))
 

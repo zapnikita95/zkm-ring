@@ -165,20 +165,36 @@ def make_overlay(kind: str, out: Path) -> Path:
         d.text((48, 1260), "04 / 06", font=font(FONT_BOLD, 24), fill=MUTED)
 
     elif kind == "route":
-        soft_bottom(d, 100, 100)
+        # Map slide is light Carto — dark ink + cream halo (same as static slide 5)
         d.rectangle((BAR_X, 156, BAR_X + BAR_W, 420), fill=GREEN)
-        y = stroke_text(d, "Веломаршрут рядом", (TEXT_X, 160), font(FONT_BLACK, 48), CREAM, W - TEXT_X - 48, stroke=5)
-        stroke_text(
-            d,
+        ink = (18, 22, 18, 255)
+        halo = (255, 255, 255, 235)
+
+        def ink_text(text, xy, fnt, max_w, *, line_gap=1.12, hw=3):
+            assert_no_banned(text)
+            x, y0 = xy
+            lines = wrap(d, text, fnt, max_w)
+            lh = int(fnt.size * line_gap)
+            for i, line in enumerate(lines):
+                yy = y0 + i * lh
+                for dx, dy in (
+                    (-hw, 0), (hw, 0), (0, -hw), (0, hw),
+                    (-hw, -hw), (hw, hw), (-hw, hw), (hw, -hw),
+                ):
+                    d.text((x + dx, yy + dy), line, font=fnt, fill=halo)
+                d.text((x, yy), line, font=fnt, fill=ink)
+            return y0 + len(lines) * lh
+
+        y = ink_text("Веломаршрут рядом", (TEXT_X, 160), font(FONT_BLACK, 48), W - TEXT_X - 48)
+        ink_text(
             "Мост видно с Зелёного кольца — маршрута мимо десятков парков и мест Москвы.",
             (TEXT_X, y + 40),
             font(FONT_BOLD, 34),
-            CREAM,
             W - TEXT_X - 48,
-            stroke=4,
             line_gap=1.15,
+            hw=2,
         )
-        d.text((48, 1260), "05 / 06", font=font(FONT_BOLD, 24), fill=MUTED)
+        d.text((48, 1260), "05 / 06", font=font(FONT_BOLD, 24), fill=(80, 90, 80, 230))
 
     elif kind == "cta":
         # centered card
