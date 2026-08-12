@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """One battle-ready Instagram carousel: Живописный мост.
 
-Artistic overlays + auto contrast (contrast.py). Output: export/battle-zhivopisny/
+Copy canon: «отрезок» only (never «кусок»). No crosshair/reticle graphics.
+Layout slots from layout_templates.py — mix corners across slides.
 """
 from __future__ import annotations
 
 import json
-import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
-from contrast import audit_labels, contrast_ratio, ensure_contrast, sample_region
+from contrast import ensure_contrast, sample_region
+from icons import map_pin, paste_icon, route_mark
+from layout_templates import TEMPLATES, assert_no_banned, stack_x
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
@@ -21,7 +23,7 @@ W, H = 1080, 1350
 GREEN = (31, 143, 74)
 CREAM = (244, 244, 245)
 DARK = (12, 14, 12)
-WARM = (255, 176, 96)  # brighter than #e67e22 — better on dark scrims
+WARM = (255, 176, 96)
 GOLD = (232, 196, 96)
 MUTED = (180, 186, 180)
 
@@ -113,15 +115,18 @@ def text_block_size(draw, text, fnt, max_w, line_gap=1.08) -> tuple[int, int]:
     return int(tw), len(lines) * lh
 
 
-def draw_lines(draw, text, xy, fnt, fill, max_w, line_gap=1.08, shadow=True) -> int:
+def draw_lines(draw, text, xy, fnt, fill, max_w, line_gap=1.08, shadow=True, align="left") -> int:
     x, y = xy
     lines = wrap(draw, text, fnt, max_w)
     lh = int(fnt.size * line_gap)
     for i, line in enumerate(lines):
         yy = y + i * lh
+        lx = x
+        if align == "right":
+            lx = x + max_w - int(draw.textlength(line, font=fnt))
         if shadow:
-            draw.text((x + 2, yy + 3), line, font=fnt, fill=(0, 0, 0, 200))
-        draw.text((x, yy), line, font=fnt, fill=fill)
+            draw.text((lx + 2, yy + 3), line, font=fnt, fill=(0, 0, 0, 200))
+        draw.text((lx, yy), line, font=fnt, fill=fill)
     return y + len(lines) * lh
 
 
@@ -136,16 +141,20 @@ def draw_safe_text(
     label: str,
     line_gap=1.08,
     audit: list,
+    align: str = "left",
 ) -> tuple[Image.Image, int]:
-    """Measure bbox → ensure contrast → draw. Returns (img, y_after)."""
+    assert_no_banned(text, label)
     probe = ImageDraw.Draw(base)
     tw, th = text_block_size(probe, text, fnt, max_w, line_gap)
     x, y = xy
-    box = (x, y, x + max(tw, 40), y + max(th, fnt.size))
+    if align == "right":
+        box = (x, y, x + max_w, y + max(th, fnt.size))
+    else:
+        box = (x, y, x + max(tw, 40), y + max(th, fnt.size))
     img, fg, report = ensure_contrast(base, box, prefer_fg, large_text=fnt.size >= 36)
     audit.append(f"{label}: {report.worst_ratio:.2f}:1 {'OK' if report.passes else report.fix}")
     d = ImageDraw.Draw(img, "RGBA")
-    y2 = draw_lines(d, text, xy, fnt, fg, max_w, line_gap=line_gap)
+    y2 = draw_lines(d, text, xy, fnt, fg, max_w, line_gap=line_gap, align=align)
     return img, y2
 
 
@@ -174,14 +183,6 @@ def accent_bar(draw, x, y, h=120, color=GREEN):
     draw.rectangle((x, y, x + 10, y + h), fill=color)
 
 
-def ring_glyph(draw, cx, cy, r=100):
-    for rad, a in [(r, 55), (int(r * 0.78), 140), (int(r * 0.55), 55)]:
-        draw.ellipse([cx - rad, cy - rad, cx + rad, cy + rad], outline=(*GREEN, a), width=8)
-    draw.ellipse([cx - 14, cy - 14, cx + 14, cy + 14], fill=(*WARM, 255))
-    # tiny path dash
-    draw.arc([cx - r - 30, cy - r - 30, cx + r + 30, cy + r + 30], 210, 330, fill=(*CREAM, 70), width=3)
-
-
 def swipe_pill(draw, y=1195):
     draw.rounded_rectangle((W - 230, y, W - 48, y + 58), radius=29, fill=(255, 255, 255, 235))
     draw.text((W - 205, y + 14), "свайп  →", font=font(FONT_BOLD, 28), fill=DARK)
@@ -191,11 +192,33 @@ def watermark(draw):
     draw.text((W - 292, 40), "green-route.ru", font=font(FONT_REG, 26), fill=(*MUTED, 200))
 
 
+def bottom_veil(s: Image.Image, start_y: int) -> Image.Image:
+    veil = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    vd = ImageDraw.Draw(veil)
+    for y in range(start_y, H):
+        t = (y - start_y) / max(1, H - start_y)
+        vd.line([(0, y), (W, y)], fill=(8, 10, 8, int(40 + 170 * t**1.2)))
+    return Image.alpha_composite(s, veil)
+
+
+def top_veil(s: Image.Image, end_y: int = 420) -> Image.Image:
+    veil = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    vd = ImageDraw.Draw(veil)
+    for y in range(0, end_y):
+        t = 1 - y / end_y
+        vd.line([(0, y), (W, y)], fill=(8, 10, 8, int(20 + 140 * t**1.1)))
+    return Image.alpha_composite(s, veil)
+
+
 def save(img: Image.Image, idx: int):
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / f"slide-{idx:02d}.jpg"
     film_grain(img).save(path, "JPEG", quality=93, optimize=True)
     print("wrote", path.relative_to(ROOT))
+
+
+def progress(d, n: int):
+    d.text((48, 1260), f"{n:02d} / 06", font=font(FONT_BOLD, 24), fill=(*MUTED, 220))
 
 
 def main():
@@ -204,154 +227,158 @@ def main():
     detail = load("bridge-detail.jpg")
     strip = seamless_strip(ultra, 3, focus_y=0.36)
 
-    # ========== 1 HOOK ==========
-    s = slice_strip(strip, 0).convert("RGBA")
-    # soft bottom veil for text zone
-    veil = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    vd = ImageDraw.Draw(veil)
-    for y in range(680, H):
-        t = (y - 680) / (H - 680)
-        vd.line([(0, y), (W, y)], fill=(8, 10, 8, int(40 + 170 * t**1.2)))
-    s = Image.alpha_composite(s, veil)
+    # Layout mix for this carousel (combinable templates)
+    # 01 T_BL · 02 T_BR · 03 T_TR · 04 T_ML · 05 T_TL · 06 T_CARD
+    layouts = {
+        1: TEMPLATES["T_BL"],
+        2: TEMPLATES["T_BR"],
+        3: TEMPLATES["T_TR"],
+        4: TEMPLATES["T_ML"],
+        5: TEMPLATES["T_TL"],
+        6: TEMPLATES["T_CARD"],
+    }
+
+    # ========== 1 HOOK — T_BL ==========
+    L = layouts[1]
+    s = bottom_veil(slice_strip(strip, 0).convert("RGBA"), 680)
     d = ImageDraw.Draw(s, "RGBA")
     frame_corners(d)
     chip_zkm(d)
-    accent_bar(d, 48, 700, 200, GREEN)
+    accent_bar(d, 48, L.y - 20, 200, GREEN)
     audit: list[str] = []
     s_rgb = s.convert("RGB")
+    x = stack_x(L, L.max_w)
     s_rgb, y = draw_safe_text(
         s_rgb,
         "Мост с «тарелкой» на красной арке",
-        (72, 720),
+        (x, L.y),
         font(FONT_BLACK, 72),
         CREAM,
-        W - 140,
+        L.max_w,
         label="hook",
         audit=audit,
         line_gap=1.04,
+        align=L.align,
     )
     s_rgb, _ = draw_safe_text(
         s_rgb,
         "Свайпни — 105 метров чистого вау",
-        (72, y + 16),
+        (x, y + L.title_gap),
         font(FONT_BOLD, 34),
         WARM,
-        W - 140,
+        L.max_w,
         label="hook_sub",
         audit=audit,
+        align=L.align,
     )
     d = ImageDraw.Draw(s_rgb, "RGBA")
     swipe_pill(d)
-    # progress 01/06
-    d.text((48, 1260), "01 / 06", font=font(FONT_BOLD, 24), fill=(*MUTED, 220))
+    progress(d, 1)
     audit_all["01"] = audit
     save(s_rgb, 1)
 
-    # ========== 2 PLACE (seam) ==========
-    s = slice_strip(strip, 1).convert("RGBA")
-    veil = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    vd = ImageDraw.Draw(veil)
-    for y in range(820, H):
-        t = (y - 820) / (H - 820)
-        vd.line([(0, y), (W, y)], fill=(8, 10, 8, int(30 + 190 * t)))
-    s = Image.alpha_composite(s, veil)
-    # geometric diagonal slash
+    # ========== 2 PLACE — T_BR ==========
+    L = layouts[2]
+    s = bottom_veil(slice_strip(strip, 1).convert("RGBA"), 780)
     gd = ImageDraw.Draw(s, "RGBA")
-    gd.polygon([(0, 1100), (220, 820), (260, 820), (40, 1100)], fill=(*GREEN, 35))
+    gd.polygon([(W, 1100), (W - 220, 820), (W - 260, 820), (W - 40, 1100)], fill=(*GREEN, 35))
     frame_corners(gd, color=(*CREAM, 70))
     audit = []
-    s_rgb = s.convert("RGB")
+    s_rgba = s
+    paste_icon(s_rgba, map_pin(88), "tl")
+    s_rgb = s_rgba.convert("RGB")
     d = ImageDraw.Draw(s_rgb, "RGBA")
     watermark(d)
+    x = stack_x(L, L.max_w)
     s_rgb, y = draw_safe_text(
         s_rgb,
         "ЧТО ЭТО",
-        (48, 860),
+        (x, L.y),
         font(FONT_BOLD, 28),
         GOLD,
-        400,
+        L.max_w,
         label="kicker",
         audit=audit,
+        align=L.align,
     )
     s_rgb, _ = draw_safe_text(
         s_rgb,
         "Живописный мост у Серебряного Бора. Вантовая арка и капсула в воздухе.",
-        (48, y + 12),
-        font(FONT_BLACK, 48),
+        (x, y + L.title_gap),
+        font(FONT_BLACK, 46),
         CREAM,
-        W - 96,
+        L.max_w,
         label="body",
         audit=audit,
+        align=L.align,
     )
     d = ImageDraw.Draw(s_rgb, "RGBA")
-    d.text((48, 1260), "02 / 06", font=font(FONT_BOLD, 24), fill=(*MUTED, 220))
+    progress(d, 2)
     audit_all["02"] = audit
     save(s_rgb, 2)
 
-    # ========== 3 DETAIL ==========
-    s = slice_strip(strip, 2).convert("RGBA")
-    veil = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    vd = ImageDraw.Draw(veil)
-    for y in range(860, H):
-        t = (y - 860) / (H - 860)
-        vd.line([(0, y), (W, y)], fill=(8, 10, 8, int(40 + 180 * t)))
-    s = Image.alpha_composite(s, veil)
+    # ========== 3 PHOTO TIP — T_TR (top-right stack) ==========
+    L = layouts[3]
+    s = top_veil(slice_strip(strip, 2).convert("RGBA"), 520)
+    # also soft bottom so progress readable
+    s = bottom_veil(s, 1100)
     gd = ImageDraw.Draw(s, "RGBA")
-    # camera reticle
-    cx, cy = W - 180, 280
-    gd.ellipse([cx - 70, cy - 70, cx + 70, cy + 70], outline=(*CREAM, 100), width=3)
-    gd.line([(cx - 90, cy), (cx - 40, cy)], fill=(*WARM, 200), width=3)
-    gd.line([(cx + 40, cy), (cx + 90, cy)], fill=(*WARM, 200), width=3)
-    gd.line([(cx, cy - 90), (cx, cy - 40)], fill=(*WARM, 200), width=3)
-    gd.line([(cx, cy + 40), (cx, cy + 90)], fill=(*WARM, 200), width=3)
+    frame_corners(gd, color=(*CREAM, 70))
     audit = []
-    s_rgb = s.convert("RGB")
+    s_rgba = s
+    paste_icon(s_rgba, map_pin(80, fill=(*GREEN, 255)), "bl")
+    s_rgb = s_rgba.convert("RGB")
     d = ImageDraw.Draw(s_rgb, "RGBA")
     watermark(d)
+    x = stack_x(L, L.max_w)
+    # For TR: stack sits upper; use L.y
     s_rgb, y = draw_safe_text(
         s_rgb,
-        "КУДА ВСТАТЬ",
-        (48, 900),
-        font(FONT_BOLD, 28),
+        "Для лучшего фото",
+        (x, L.y),
+        font(FONT_BOLD, 30),
         WARM,
-        500,
+        L.max_w,
         label="kicker",
         audit=audit,
+        align=L.align,
     )
     s_rgb, _ = draw_safe_text(
         s_rgb,
-        "Набережная или Серебряный Бор на закате. Либо с линии Зелёного кольца.",
-        (48, y + 12),
-        font(FONT_BLACK, 46),
+        "Встаньте на набережной или со стороны Серебряного Бора — лучше на закате. Можно и с линии Зелёного кольца.",
+        (x, y + L.title_gap),
+        font(FONT_BLACK, 42),
         CREAM,
-        W - 96,
+        L.max_w,
         label="body",
         audit=audit,
+        align=L.align,
     )
     d = ImageDraw.Draw(s_rgb, "RGBA")
-    d.text((48, 1260), "03 / 06", font=font(FONT_BOLD, 24), fill=(*MUTED, 220))
+    progress(d, 3)
     audit_all["03"] = audit
     save(s_rgb, 3)
 
-    # ========== 4 WOW ==========
+    # ========== 4 WOW — T_ML ==========
+    L = layouts[4]
     base = ImageEnhance.Brightness(grade(cover_crop(detail, W, H, (0.55, 0.4)))).enhance(0.42)
     s = base.convert("RGBA")
-    # big translucent "105" watermark
     big = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     bd = ImageDraw.Draw(big)
     bd.text((40, 200), "105", font=font(FONT_BLACK, 340), fill=(255, 255, 255, 28))
     s = Image.alpha_composite(s, big)
     gd = ImageDraw.Draw(s, "RGBA")
     frame_corners(gd)
-    accent_bar(gd, 48, 420, 280, WARM)
+    accent_bar(gd, 48, L.y, 280, WARM)
     audit = []
     s_rgb = s.convert("RGB")
     d = ImageDraw.Draw(s_rgb, "RGBA")
     watermark(d)
+    x = 72
     s_rgb, y = draw_safe_text(
         s_rgb,
         "ВАУ-ФАКТ",
-        (72, 420),
+        (x, L.y),
         font(FONT_BOLD, 30),
         WARM,
         400,
@@ -361,7 +388,7 @@ def main():
     s_rgb, y = draw_safe_text(
         s_rgb,
         "105",
-        (64, y + 8),
+        (64, y + L.title_gap - 8),
         font(FONT_BLACK, 200),
         CREAM,
         900,
@@ -372,7 +399,7 @@ def main():
     s_rgb, y = draw_safe_text(
         s_rgb,
         "метров арки",
-        (72, y - 10),
+        (x, y - 10),
         font(FONT_BLACK, 52),
         CREAM,
         W - 140,
@@ -382,7 +409,7 @@ def main():
     s_rgb, y = draw_safe_text(
         s_rgb,
         "72 ванты · пролёт 409,5 м · открыт 2007",
-        (72, y + 20),
+        (x, y + 24),
         font(FONT_BOLD, 32),
         GOLD,
         W - 140,
@@ -392,7 +419,7 @@ def main():
     s_rgb, _ = draw_safe_text(
         s_rgb,
         "Источник: Wikipedia «Живописный мост»",
-        (72, y + 28),
+        (x, y + 28),
         font(FONT_REG, 24),
         MUTED,
         W - 140,
@@ -400,71 +427,69 @@ def main():
         audit=audit,
     )
     d = ImageDraw.Draw(s_rgb, "RGBA")
-    d.text((48, 1260), "04 / 06", font=font(FONT_BOLD, 24), fill=(*MUTED, 220))
+    progress(d, 4)
     audit_all["04"] = audit
     save(s_rgb, 4)
 
-    # ========== 5 ON RING ==========
+    # ========== 5 ON RING — T_TL ==========
+    L = layouts[5]
     base = ImageEnhance.Brightness(grade(cover_crop(detail, W, H, (0.35, 0.55)))).enhance(0.4)
-    s = base.convert("RGBA")
-    gd = ImageDraw.Draw(s, "RGBA")
-    ring_glyph(gd, W - 200, 360, 110)
-    # route dashes
-    for i in range(8):
-        ang = math.radians(200 + i * 18)
-        x0 = W - 200 + int(math.cos(ang) * 150)
-        y0 = 360 + int(math.sin(ang) * 150)
-        x1 = W - 200 + int(math.cos(ang) * 175)
-        y1 = 360 + int(math.sin(ang) * 175)
-        gd.line([(x0, y0), (x1, y1)], fill=(*GREEN, 160), width=4)
+    s = top_veil(base.convert("RGBA"), 480)
+    s = bottom_veil(s, 1050)
+    s_rgba = s
+    paste_icon(s_rgba, route_mark(100), "br")
+    gd = ImageDraw.Draw(s_rgba, "RGBA")
     frame_corners(gd, color=(*GREEN, 80))
     audit = []
-    s_rgb = s.convert("RGB")
+    s_rgb = s_rgba.convert("RGB")
     d = ImageDraw.Draw(s_rgb, "RGBA")
     watermark(d)
+    x = stack_x(L, L.max_w)
     s_rgb, y = draw_safe_text(
         s_rgb,
-        "НА ЗЕЛЁНОМ КОЛЬЦЕ",
-        (48, 820),
-        font(FONT_BOLD, 28),
+        "На Зелёном кольце",
+        (x, L.y),
+        font(FONT_BOLD, 30),
         GREEN,
-        W - 96,
+        L.max_w,
         label="kicker",
         audit=audit,
+        align=L.align,
     )
     s_rgb, _ = draw_safe_text(
         s_rgb,
-        "Собери кусок мимо моста — не обязательно весь круг.",
-        (48, y + 14),
-        font(FONT_BLACK, 48),
+        "Соберите отрезок мимо моста — не обязательно ехать весь круг.",
+        (x, y + L.title_gap),
+        font(FONT_BLACK, 46),
         CREAM,
-        W - 96,
+        L.max_w,
         label="body",
         audit=audit,
+        align=L.align,
     )
     d = ImageDraw.Draw(s_rgb, "RGBA")
-    d.text((48, 1260), "05 / 06", font=font(FONT_BOLD, 24), fill=(*MUTED, 220))
+    progress(d, 5)
     audit_all["05"] = audit
     save(s_rgb, 5)
 
-    # ========== 6 CTA ==========
+    # ========== 6 CTA — T_CARD ==========
+    L = layouts[6]
     base = ImageEnhance.Brightness(grade(cover_crop(detail, W, H))).enhance(0.28)
     s = base.convert("RGBA")
     card = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     cd = ImageDraw.Draw(card)
     cd.rounded_rectangle((56, 360, W - 56, 1040), radius=36, fill=(12, 14, 12, 230))
-    # green top edge
     cd.rounded_rectangle((56, 360, W - 56, 376), radius=8, fill=(*GREEN, 255))
     s = Image.alpha_composite(s, card)
-    gd = ImageDraw.Draw(s, "RGBA")
-    ring_glyph(gd, W // 2, 520, 70)
+    # ready map-pin, not target rings
+    pin = map_pin(96)
+    s.paste(pin, (W // 2 - 48, 420), pin)
     audit = []
     s_rgb = s.convert("RGB")
-    # On dark card — text should pass without extra scrim; still run ensure
     s_rgb, y = draw_safe_text(
         s_rgb,
         "Зелёный Маршрут",
-        (96, 620),
+        (96, 540),
         font(FONT_BOLD, 32),
         (159, 224, 180),
         W - 200,
@@ -473,17 +498,16 @@ def main():
     )
     s_rgb, y = draw_safe_text(
         s_rgb,
-        "Собери кусок Зелёного кольца мимо этого моста",
-        (96, y + 16),
-        font(FONT_BLACK, 50),
+        "Соберите отрезок Зелёного кольца мимо этого моста",
+        (96, y + L.title_gap),
+        font(FONT_BLACK, 48),
         CREAM,
         W - 200,
         label="cta_msg",
         audit=audit,
     )
-    # CTA button — audit solid fill BEFORE painting glyphs (else white text pollutes sample)
     d = ImageDraw.Draw(s_rgb, "RGBA")
-    btn_fill = (22, 110, 58)  # darker green → white ≥ 4.5:1
+    btn_fill = (22, 110, 58)
     d.rounded_rectangle((96, 900, W - 96, 1000), radius=20, fill=btn_fill)
     r = sample_region(s_rgb, (120, 920, W - 120, 980), (255, 255, 255), min_ratio=4.5)
     if not r.passes:
@@ -492,15 +516,32 @@ def main():
         r = sample_region(s_rgb, (120, 920, W - 120, 980), (255, 255, 255), min_ratio=4.5)
     d.text((W // 2 - 150, 928), "green-route.ru", font=font(FONT_BLACK, 40), fill=(255, 255, 255))
     audit.append(f"cta_btn: {r.worst_ratio:.2f}:1 {'OK' if r.passes else 'FAIL'}")
-    d.text((48, 1260), "06 / 06", font=font(FONT_BOLD, 24), fill=(*MUTED, 220))
+    progress(d, 6)
     audit_all["06"] = audit
     save(s_rgb, 6)
+
+    # layout manifest for future mixes
+    manifest = {
+        "carousel": "battle-zhivopisny",
+        "layouts": {str(k): v.id for k, v in layouts.items()},
+        "copy_notes": {
+            "banned": ["кусок"],
+            "prefer": ["отрезок"],
+            "slide_03": "Для лучшего фото → куда встать (человеческий ответ)",
+        },
+    }
+    (OUT / "layout-manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     report_path = OUT / "contrast-audit.json"
     report_path.write_text(json.dumps(audit_all, ensure_ascii=False, indent=2), encoding="utf-8")
     print("audit →", report_path.relative_to(ROOT))
     for k, lines in audit_all.items():
         print(f"[{k}]", "; ".join(lines))
+    fails = [f"{k}:{line}" for k, lines in audit_all.items() for line in lines if "FAIL" in line]
+    if fails:
+        raise SystemExit("contrast FAIL: " + "; ".join(fails))
 
 
 if __name__ == "__main__":
