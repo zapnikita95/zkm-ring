@@ -210,7 +210,7 @@ def render_bridge():
     s3 = bottom_gradient(slice_strip(strip, 2), 0.4)
     d = ImageDraw.Draw(s3, "RGBA")
     watermark(d)
-    d.text((48, 900), "КУДА ВСТАТЬ", font=font(FONT_BOLD, 28), fill=WARM)
+    d.text((48, 900), "Для лучшего фото", font=font(FONT_BOLD, 28), fill=WARM)
     draw_text_block(
         d,
         "Набережная или Серебряный Бор на закате. Кадр с линии Зелёного кольца.",
@@ -253,7 +253,7 @@ def render_bridge():
     d.text((48, 780), "НА КОЛЬЦЕ", font=font(FONT_BOLD, 28), fill=GREEN)
     draw_text_block(
         d,
-        "Лежит на Зелёном кольце Москвы. Собери кусок мимо моста — не весь круг.",
+        "Лежит на Зелёном кольце Москвы. Соберите отрезок мимо моста — не весь круг.",
         (48, 840),
         font(FONT_BLACK, 48),
         CREAM,
@@ -269,7 +269,7 @@ def render_bridge():
     d.text((96, 470), "Зелёный Маршрут", font=font(FONT_BOLD, 32), fill=(159, 224, 180))
     draw_text_block(
         d,
-        "Собери кусок Зелёного кольца мимо этого моста",
+        "Соберите отрезок Зелёного кольца мимо этого моста",
         (96, 540),
         font(FONT_BLACK, 54),
         CREAM,
@@ -316,7 +316,7 @@ def render_aqueduct():
     d.text((48, 880), "ЧТО ЭТО", font=font(FONT_BOLD, 28), fill=GOLD)
     draw_text_block(
         d,
-        "Ростокинский акведук. Единственный выживший кусок первого водопровода Москвы.",
+        "Ростокинский акведук. Единственный выживший отрезок первого водопровода Москвы.",
         (48, 930),
         font(FONT_BLACK, 48),
         CREAM,
