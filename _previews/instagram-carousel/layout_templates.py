@@ -49,7 +49,7 @@ def stack_x(stack: TextStack, content_w: int) -> int:
 
 
 # Copy canon
-BANNED_WORDS = ("кусок", "Кусок", "КУСОК")
+BANNED_WORDS = ("кусок", "Кусок", "КУСОК", "ванты", "Ванты", "ВАНТЫ")
 
 
 def assert_no_banned(text: str, where: str = "") -> None:

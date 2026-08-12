@@ -11,7 +11,7 @@
 |-------|------|
 | **A_mixed** | Хук Ken Burns → живое видео моста → water-alive → дрон → sky drift → CTA |
 | **B_alive_stills** | Только фото, но все двигаются (zoom / drift / pulse / wave) |
-| **C_video_heavy** | Дрон + два куска YT Живописного + Wikimedia Москва-река |
+| **C_video_heavy** | Дрон + живое видео места + река; **слайд 05 = карта**, не клип |
 
 Смотреть: `_previews/instagram-carousel/demo-motion-carousels.html`
 
@@ -43,4 +43,7 @@ open demo-motion-carousels.html
 - YT-исходники — **только для локального демо**, в git не кладём (`assets/video/yt-*.mp4`).
 - Wikimedia `moscow-river` — OK как CC-пример реки.
 - Для боевого поста лучше своя съёмка / лицензированный сток.
-- Копирайт на оверлеях — тот же канон: без «свайп», без «кусок», факты не выдумывать.
+- Копирайт на оверлеях — тот же канон: без «свайп», без «кусок», без «ванты», факты не выдумывать.
+- **Слайд 05** всегда статичная карта сервиса (`bake_instagram_poi_map.py`), даже в пачке C.
+- **Анти-stretch:** любой still перед Ken Burns / drift сначала `cover_crop_strict` → 4:5. Нельзя `zoompan` напрямую по ультра-широкой панораме.
+- Какие точки можно в C: [`VIDEO_POI_LIST.md`](./VIDEO_POI_LIST.md).

@@ -408,7 +408,7 @@ def main():
     )
     s_rgb, y = draw_safe_text(
         s_rgb,
-        "72 ванты · пролёт 409,5 м · открыт 2007",
+        "пролёт 409,5 м · открыт 2007",
         (x, y + 24),
         font(FONT_BOLD, 32),
         GOLD,

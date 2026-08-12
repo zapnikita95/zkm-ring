@@ -5,8 +5,11 @@
     "A · mixed (видео + оживлённые фото)": [
       "01-hook-kenburns.mp4",
       "02-answer-realvideo.mp4",
+      "02-answer-skydrift.mp4",
       "03-closed-water.mp4",
       "04-height-drone.mp4",
+      "04-height-ken.mp4",
+      "05-route-map.mp4",
       "05-route-skydrift.mp4",
       "06-cta-pulse.mp4"
     ],
@@ -15,14 +18,19 @@
       "02-answer-skydrift.mp4",
       "03-closed-water.mp4",
       "04-height-ken.mp4",
+      "05-route-map.mp4",
       "05-route-pulse.mp4",
       "06-cta-water.mp4"
     ],
     "C · video-heavy (дрон + мост + река)": [
       "01-hook-drone.mp4",
+      "01-hook-ken.mp4",
       "02-answer-realvideo.mp4",
+      "02-answer.mp4",
       "03-closed-realvideo.mp4",
+      "03-closed.mp4",
       "04-height-moscow-river.mp4",
+      "05-route-map.mp4",
       "05-route-skydrift.mp4",
       "06-cta-pulse.mp4"
     ]
