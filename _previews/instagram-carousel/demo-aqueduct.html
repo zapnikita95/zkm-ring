@@ -3,110 +3,75 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SCRL demo · Ростокинский акведук · Зелёный Маршрут</title>
+    <title>Карусель · Ростокинский акведук · Зелёный Маршрут</title>
     <link rel="stylesheet" href="./demo.css" />
   </head>
   <body>
-    <h1>Демо карусели SCRL — Ростокинский акведук</h1>
-    <p class="lead">
-      Макет continuous swipe (SCRL-стиль). Свайпай горизонтально.
-      Бренд: <b>Зелёный Маршрут</b> · <b>green-route.ru</b>. Layout: L3 + L5 + L6 + L10 · CTA #3.
-    </p>
-    <div class="meta">
-      <span class="chip">4:5 · 1080×1350</span>
-      <span class="chip">волна D7</span>
-      <span class="chip">brief: rostokino-aqueduct</span>
-    </div>
-
-    <div class="phone">
-      <div class="phone-top">
-        <span>Зелёный Маршрут</span>
-        <span>свайп →</span>
+    <div class="wrap">
+      <h1>Ростокинский акведук — готовые слайды 4:5</h1>
+      <p class="lead">
+        Реальные фото акведука + surprise-хук «Миллионный мост».
+        Слайды 1–3 — continuous панорама аркад (SCRL). Бренд:
+        <b>Зелёный Маршрут</b> · <b>green-route.ru</b>.
+      </p>
+      <div class="meta">
+        <span class="chip">1080×1350</span>
+        <span class="chip">6 слайдов</span>
+        <span class="chip">SCRL seam 1→3</span>
+        <span class="chip">CTA #3</span>
       </div>
-      <div class="scrl" id="scrl" aria-label="Карусель Ростокинский акведук">
-        <article class="slide">
-          <div class="bg bg-aq-1"></div>
-          <div class="arch-row" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+
+      <div class="ig">
+        <div class="ig-head">
+          <div class="avatar">ЗМ</div>
+          <div>
+            <div class="who">zeleny.marshrut</div>
+            <div class="sub">Зелёный Маршрут · Москва</div>
           </div>
-          <div class="veil"></div>
-          <span class="badge-zkm">ЗКМ</span>
-          <div class="hook">
-            В Москве стоит акведук XVIII века. Его зовут «Миллионный мост»
-            <small>свайп → 21 арка · Зелёное кольцо</small>
-          </div>
-        </article>
-        <article class="slide">
-          <div class="bg bg-aq-2"></div>
-          <div class="arch-row" aria-hidden="true" style="opacity: 0.4; transform: translateX(-8%)">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-          <div class="veil"></div>
-          <span class="wm">green-route.ru</span>
-          <div class="panel">
-            <div class="k">Место</div>
-            <div class="t">Ростокинский акведук</div>
-            <div class="s">Белокаменный мост над Яузой — единственный сохранившийся кусок первого Мытищинского водопровода Москвы.</div>
-          </div>
-        </article>
-        <article class="slide">
-          <div class="bg bg-aq-3"></div>
-          <div class="veil"></div>
-          <span class="wm">green-route.ru</span>
-          <div class="panel">
-            <div class="k">Кадр</div>
-            <div class="t">Арки «бегут» вдоль свайпа</div>
-            <div class="s">Идеально для SCRL: wide вдоль аркад. Вечерняя подсветка усиливает вау. Рядом — линия кольца.</div>
-          </div>
-        </article>
-        <article class="slide">
-          <div class="bg bg-aq-4"></div>
-          <div class="big-num">
-            <div class="n">21</div>
-            <div class="u">арка · 356 м · до 15 м высоты</div>
-            <div class="d">1783–1784. Крупнейший каменный мост России своего времени. Источник: Wikipedia «Ростокинский акведук».</div>
-          </div>
-        </article>
-        <article class="slide">
-          <div class="bg bg-aq-5"></div>
-          <div class="veil"></div>
-          <span class="wm">green-route.ru</span>
-          <div class="panel">
-            <div class="k">На кольце · карта</div>
-            <div class="t">Северо-восток Зелёного кольца</div>
-            <div class="s">Готовый кусок «Ростокинский акведук · Тихвинская церковь» или свой отрезок: старт и финиш где удобно.</div>
-          </div>
-        </article>
-        <article class="slide">
-          <div class="bg bg-aq-6"></div>
-          <div class="cta">
-            <div class="brand">Зелёный Маршрут</div>
-            <div class="msg">Не весь круг: выбери старт и финиш сам — мимо акведука</div>
-            <a class="btn" href="https://green-route.ru" target="_blank" rel="noopener">green-route.ru</a>
-          </div>
-        </article>
+        </div>
+        <div class="carousel" id="c" aria-label="Карусель Ростокинский акведук">
+          <img src="./export/aqueduct/slide-01.jpg" alt="Хук" width="1080" height="1350" />
+          <img src="./export/aqueduct/slide-02.jpg" alt="Что это" width="1080" height="1350" />
+          <img src="./export/aqueduct/slide-03.jpg" alt="Кадр SCRL" width="1080" height="1350" />
+          <img src="./export/aqueduct/slide-04.jpg" alt="Вау 21 арка" width="1080" height="1350" />
+          <img src="./export/aqueduct/slide-05.jpg" alt="На кольце" width="1080" height="1350" />
+          <img src="./export/aqueduct/slide-06.jpg" alt="CTA" width="1080" height="1350" />
+        </div>
+        <div class="dots" id="dots" aria-hidden="true"></div>
+        <div class="actions" aria-hidden="true">♡ &nbsp; 💬 &nbsp; ➤ &nbsp; <span style="margin-left:auto">🔖</span></div>
+        <p class="cap">
+          <b>zeleny.marshrut</b> Акведук XVIII века на Зелёном кольце.
+          Не весь круг — старт и финиш сам → green-route.ru
+        </p>
       </div>
-      <div class="dots" id="dots" aria-hidden="true"></div>
-      <p class="hint">В SCRL замени градиенты на реальные фото аркад — шов между слайдами 1–2 непрерывный.</p>
+      <p class="hint">Свайпай. Экспорт: <code>export/aqueduct/</code></p>
+
+      <div class="rules">
+        <h2>Правила, которые заложены</h2>
+        <ul>
+          <li><strong>Curiosity gap</strong> на слайде 1 — «акведук в Москве» → свайп за именем/цифрами.</li>
+          <li><strong>Один акцент</strong> (gold/warm) + green chip ЗКМ, без радуги.</li>
+          <li><strong>Источник факта</strong> на слайде с цифрой — доверие.</li>
+          <li><strong>CTA ротация #3</strong> — «не весь круг».</li>
+        </ul>
+      </div>
+
+      <p class="nav">
+        <a href="./demo-zhivopisny.html">← Живописный мост</a>
+        ·
+        <a href="../../docs/INSTAGRAM_CONTENT_SYSTEM.md">система контента</a>
+      </p>
     </div>
-
-    <p class="nav">
-      <a href="./demo-zhivopisny.html">← демо Живописный мост</a>
-      ·
-      <a href="../../docs/INSTAGRAM_CONTENT_SYSTEM.md">система контента</a>
-    </p>
-
     <script>
-      const scrl = document.getElementById('scrl')
+      const c = document.getElementById('c')
       const dots = document.getElementById('dots')
-      const n = scrl.children.length
-      for (let i = 0; i < n; i++) {
-        const s = document.createElement('span')
-        if (i === 0) s.className = 'on'
-        dots.appendChild(s)
-      }
-      scrl.addEventListener('scroll', () => {
-        const i = Math.round(scrl.scrollLeft / scrl.children[0].offsetWidth)
+      ;[...c.querySelectorAll('img')].forEach((_, i) => {
+        const el = document.createElement('i')
+        if (i === 0) el.className = 'on'
+        dots.appendChild(el)
+      })
+      c.addEventListener('scroll', () => {
+        const i = Math.round(c.scrollLeft / c.children[0].clientWidth)
         ;[...dots.children].forEach((d, j) => d.classList.toggle('on', j === i))
       })
     </script>

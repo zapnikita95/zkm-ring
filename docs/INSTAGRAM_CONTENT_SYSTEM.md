@@ -106,18 +106,24 @@ Briefs: `docs/instagram/briefs/`. Шаблон: `docs/instagram/place-brief-TEMP
 
 ---
 
-## 6. SCRL — как собирать
+## 6. SCRL + демо (не градиенты)
 
-1. Скачать SCRL (iOS/Android).  
-2. Blank → 6 frames → 4:5.  
-3. Положить wide-фото через швы (арка моста / аркады акведука).  
-4. Текст хука только в frame 1.  
-5. Preview swipe → Export carousel → проверить порядок.  
-6. Залить в Instagram как карусель.
+**Демо v2 (реальные слайды 1080×1350):**
 
-HTML-демо раскладок (без телефона): открыть  
-`_previews/instagram-carousel/demo-zhivopisny.html` и  
-`_previews/instagram-carousel/demo-aqueduct.html` в браузере, свайпать горизонтально.
+- Превью: [`_previews/instagram-carousel/demo-zhivopisny.html`](../_previews/instagram-carousel/demo-zhivopisny.html), [`demo-aqueduct.html`](../_previews/instagram-carousel/demo-aqueduct.html)  
+- JPEG: `_previews/instagram-carousel/export/zhivopisny/`, `…/aqueduct/`  
+- Слайды 1–3 нарезаны из одного wide-фото (SCRL seam).  
+- Перерендер: `python3 _previews/instagram-carousel/render_carousels.py`
+
+**Сборка в SCRL (прод):**
+
+1. SCRL → Blank → 6 frames → **4:5**.  
+2. Wide-фото через швы (арка / аркады); шов не по центру объекта.  
+3. Хук только frame 1; CTA — последний; «свайп →» только на 1.  
+4. Preview → Export → проверить порядок (иногда reverse).  
+5. Instagram + музыка.
+
+Правила «что считается пиздатой каруселью» — в skill § «Как делать пиздатые карусели».
 
 ---
 
