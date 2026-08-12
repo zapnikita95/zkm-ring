@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>БОЕВАЯ карусель · Живописный мост · Зелёный Маршрут</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Боевая карусель — Живописный мост</h1>
+      <p class="lead">
+        Полностью готовые JPEG 1080×1350 с авто-контрастом текста к пикселям фона,
+        тёплые акценты только на тёмных плашках, графика (рамка, пин кольца, ретикл, grain).
+        Бренд: <b>Зелёный Маршрут</b> · <b>green-route.ru</b>.
+      </p>
+      <div class="meta">
+        <span class="chip">BATTLE</span>
+        <span class="chip">6 × 4:5</span>
+        <span class="chip">contrast.py</span>
+        <span class="chip">SCRL seam 1→3</span>
+      </div>
+
+      <div class="ig">
+        <div class="ig-head">
+          <div class="avatar">ЗМ</div>
+          <div>
+            <div class="who">zeleny.marshrut</div>
+            <div class="sub">Зелёный Маршрут · боевой пост</div>
+          </div>
+        </div>
+        <div class="carousel" id="c">
+          <img src="./export/battle-zhivopisny/slide-01.jpg" width="1080" height="1350" alt="01 хук" />
+          <img src="./export/battle-zhivopisny/slide-02.jpg" width="1080" height="1350" alt="02 место" />
+          <img src="./export/battle-zhivopisny/slide-03.jpg" width="1080" height="1350" alt="03 куда встать" />
+          <img src="./export/battle-zhivopisny/slide-04.jpg" width="1080" height="1350" alt="04 вау" />
+          <img src="./export/battle-zhivopisny/slide-05.jpg" width="1080" height="1350" alt="05 кольцо" />
+          <img src="./export/battle-zhivopisny/slide-06.jpg" width="1080" height="1350" alt="06 CTA" />
+        </div>
+        <div class="dots" id="dots"></div>
+        <div class="actions" aria-hidden="true">♡ &nbsp; 💬 &nbsp; ➤ &nbsp; <span style="margin-left:auto">🔖</span></div>
+        <p class="cap">
+          <b>zeleny.marshrut</b> Мост с «тарелкой» на красной арке — на Зелёном кольце.
+          Собери кусок → green-route.ru
+        </p>
+      </div>
+      <p class="hint">
+        Файлы для залива в IG / SCRL:
+        <code>export/battle-zhivopisny/slide-01.jpg … slide-06.jpg</code>
+        · аудит: <code>contrast-audit.json</code>
+      </p>
+      <div class="rules">
+        <h2>Системный контраст</h2>
+        <ul>
+          <li><strong>contrast.py</strong> — сэмпл сетки пикселей под bbox текста, WCAG worst-case.</li>
+          <li>Оранжевый/gold <strong>никогда</strong> не рисуется прямо на фото — только на тёмной плашке.</li>
+          <li>Если ratio &lt; порога → scrim + перекраска fg (авто).</li>
+          <li>Пересбор: <code>python3 render_battle_zhivopisny.py</code></li>
+        </ul>
+      </div>
+      <p class="nav">
+        <a href="./demo-zhivopisny.html">старое демо</a>
+        ·
+        <a href="../../docs/instagram/briefs/zhivopisny-most.md">brief</a>
+      </p>
+    </div>
+    <script>
+      const c = document.getElementById('c')
+      const dots = document.getElementById('dots')
+      ;[...c.querySelectorAll('img')].forEach((_, i) => {
+        const el = document.createElement('i')
+        if (!i) el.className = 'on'
+        dots.appendChild(el)
+      })
+      c.addEventListener('scroll', () => {
+        const i = Math.round(c.scrollLeft / c.children[0].clientWidth)
+        ;[...dots.children].forEach((d, j) => d.classList.toggle('on', j === i))
+      })
+    </script>
+  </body>
+</html>
