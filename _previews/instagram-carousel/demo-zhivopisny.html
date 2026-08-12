@@ -3,111 +3,77 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SCRL demo · Живописный мост · Зелёный Маршрут</title>
+    <title>Карусель · Живописный мост · Зелёный Маршрут</title>
     <link rel="stylesheet" href="./demo.css" />
   </head>
   <body>
-    <h1>Демо карусели SCRL — Живописный мост</h1>
-    <p class="lead">
-      Макет 6 слайдов 4:5 в стиле continuous swipe (как в SCRL). Свайпай горизонтально.
-      Бренд: <b>Зелёный Маршрут</b> · <b>green-route.ru</b>. Layout: L3 + L5 + L10 · CTA #1.
-    </p>
-    <div class="meta">
-      <span class="chip">4:5 · 1080×1350</span>
-      <span class="chip">волна D0</span>
-      <span class="chip">brief: zhivopisny-most</span>
-    </div>
-
-    <div class="phone">
-      <div class="phone-top">
-        <span>Зелёный Маршрут</span>
-        <span>свайп →</span>
+    <div class="wrap">
+      <h1>Живописный мост — готовые слайды 4:5</h1>
+      <p class="lead">
+        Реальные фото (Wikimedia) + хук / вау-факт / CTA по правилам каруселей 2025–26.
+        Слайды 1–3 — <b>один continuous SCRL-панорамный канвас</b> (арка «уезжает» при свайпе).
+        Бренд: <b>Зелёный Маршрут</b> · <b>green-route.ru</b>.
+      </p>
+      <div class="meta">
+        <span class="chip">1080×1350</span>
+        <span class="chip">6 слайдов</span>
+        <span class="chip">SCRL seam 1→3</span>
+        <span class="chip">CTA #1</span>
       </div>
-      <div class="scrl" id="scrl" aria-label="Карусель Живописный мост">
-        <!-- 1 HOOK -->
-        <article class="slide">
-          <div class="bg bg-bridge-1"></div>
-          <div class="arch-deco" aria-hidden="true"></div>
-          <div class="veil"></div>
-          <span class="badge-zkm">ЗКМ</span>
-          <div class="hook">
-            В Москве есть мост с «летающей тарелкой» на красной арке
-            <small>свайп → вау-факт · на Зелёном кольце</small>
+
+      <div class="ig">
+        <div class="ig-head">
+          <div class="avatar">ЗМ</div>
+          <div>
+            <div class="who">zeleny.marshrut</div>
+            <div class="sub">Зелёный Маршрут · Москва</div>
           </div>
-        </article>
-        <!-- 2 PLACE (seam continues warm→blue) -->
-        <article class="slide">
-          <div class="bg bg-bridge-2"></div>
-          <div class="veil"></div>
-          <span class="wm">green-route.ru</span>
-          <div class="panel">
-            <div class="k">Место</div>
-            <div class="t">Живописный мост</div>
-            <div class="s">Вантовый переход у Серебряного Бора. Красная арка-пилон и стеклянная капсула — силуэт современной Москвы.</div>
-          </div>
-        </article>
-        <!-- 3 DETAILS -->
-        <article class="slide">
-          <div class="bg bg-bridge-3"></div>
-          <div class="veil"></div>
-          <span class="wm">green-route.ru</span>
-          <div class="panel">
-            <div class="k">Куда встать</div>
-            <div class="t">Набережная / Серебряный Бор на закате</div>
-            <div class="s">Или с линии Зелёного кольца. Для SCRL — wide-кадр арки через 2–3 слайда, шов не по центру капсулы.</div>
-          </div>
-        </article>
-        <!-- 4 WOW L5 -->
-        <article class="slide">
-          <div class="bg bg-bridge-4"></div>
-          <div class="big-num">
-            <div class="n">105</div>
-            <div class="u">метров арки · 72 ванты</div>
-            <div class="d">Основной пролёт 409,5 м. Открыт 27.12.2007. Источник: Wikipedia «Живописный мост».</div>
-          </div>
-        </article>
-        <!-- 5 ON RING -->
-        <article class="slide">
-          <div class="bg bg-bridge-5"></div>
-          <div class="veil"></div>
-          <span class="wm">green-route.ru</span>
-          <div class="panel">
-            <div class="k">На кольце</div>
-            <div class="t">Точка Зелёного кольца Москвы</div>
-            <div class="s">Рядом семейный кусок «Серебряный Бор · Живописный мост». Собери свой старт и финиш — не обязательно весь круг.</div>
-          </div>
-        </article>
-        <!-- 6 CTA -->
-        <article class="slide">
-          <div class="bg bg-bridge-6"></div>
-          <div class="cta">
-            <div class="brand">Зелёный Маршрут</div>
-            <div class="msg">Собери кусок Зелёного кольца мимо Живописного моста</div>
-            <a class="btn" href="https://green-route.ru" target="_blank" rel="noopener">green-route.ru</a>
-          </div>
-        </article>
+        </div>
+        <div class="carousel" id="c" aria-label="Карусель Живописный мост">
+          <img src="./export/zhivopisny/slide-01.jpg" alt="Хук" width="1080" height="1350" />
+          <img src="./export/zhivopisny/slide-02.jpg" alt="Что это" width="1080" height="1350" />
+          <img src="./export/zhivopisny/slide-03.jpg" alt="Куда встать" width="1080" height="1350" />
+          <img src="./export/zhivopisny/slide-04.jpg" alt="Вау-факт 105м" width="1080" height="1350" />
+          <img src="./export/zhivopisny/slide-05.jpg" alt="На кольце" width="1080" height="1350" />
+          <img src="./export/zhivopisny/slide-06.jpg" alt="CTA green-route.ru" width="1080" height="1350" />
+        </div>
+        <div class="dots" id="dots" aria-hidden="true"></div>
+        <div class="actions" aria-hidden="true">♡ &nbsp; 💬 &nbsp; ➤ &nbsp; <span style="margin-left:auto">🔖</span></div>
+        <p class="cap">
+          <b>zeleny.marshrut</b> Мост с «тарелкой» на красной арке — на Зелёном кольце.
+          Собери кусок → green-route.ru
+        </p>
       </div>
-      <div class="dots" id="dots" aria-hidden="true"></div>
-      <p class="hint">Непрерывный свайп = эффект SCRL. В приложении — реальные фото поверх этого скелета.</p>
+      <p class="hint">Свайпай как в Instagram. Файлы слайдов: <code>export/zhivopisny/</code> — их же заливаешь из SCRL/галереи.</p>
+
+      <div class="rules">
+        <h2>Почему так (не градиентная подделка)</h2>
+        <ul>
+          <li><strong>Slide 1 = 80% успеха</strong> — крупный хук, контраст, «свайп →» только здесь, без CTA.</li>
+          <li><strong>SCRL seam</strong> — слайды 1–3 нарезаны из одного ultra-wide фото арки.</li>
+          <li><strong>≤ ~2 коротких блока текста</strong> на слайд; цифра 105 занимает кадр.</li>
+          <li><strong>CTA только в конце</strong> — green-route.ru + Зелёный Маршрут.</li>
+          <li>Прод: собери то же в <strong>SCRL</strong> со своими фото / этим экспортом как референс.</li>
+        </ul>
+      </div>
+
+      <p class="nav">
+        <a href="./demo-aqueduct.html">→ Ростокинский акведук</a>
+        ·
+        <a href="../../docs/INSTAGRAM_CONTENT_SYSTEM.md">система контента</a>
+      </p>
+      <p class="strip-note">Перерендер: <code>python3 render_carousels.py</code></p>
     </div>
-
-    <p class="nav">
-      <a href="./demo-aqueduct.html">→ демо Акведук</a>
-      ·
-      <a href="../../docs/INSTAGRAM_CONTENT_SYSTEM.md">система контента</a>
-    </p>
-
     <script>
-      const scrl = document.getElementById('scrl')
+      const c = document.getElementById('c')
       const dots = document.getElementById('dots')
-      const n = scrl.children.length
-      for (let i = 0; i < n; i++) {
-        const s = document.createElement('span')
-        if (i === 0) s.className = 'on'
-        dots.appendChild(s)
-      }
-      scrl.addEventListener('scroll', () => {
-        const i = Math.round(scrl.scrollLeft / scrl.children[0].offsetWidth)
+      ;[...c.querySelectorAll('img')].forEach((_, i) => {
+        const el = document.createElement('i')
+        if (i === 0) el.className = 'on'
+        dots.appendChild(el)
+      })
+      c.addEventListener('scroll', () => {
+        const i = Math.round(c.scrollLeft / c.children[0].clientWidth)
         ;[...dots.children].forEach((d, j) => d.classList.toggle('on', j === i))
       })
     </script>
