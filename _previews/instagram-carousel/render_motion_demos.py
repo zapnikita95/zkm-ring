@@ -1,0 +1,399 @@
+#!/usr/bin/env python3
+"""Motion demos for Instagram carousel: video + animated stills + text overlays.
+
+Produces three example packs under export/motion-demos/:
+  A_mixed   — real Zhivopisny video + animated stills
+  B_alive   — all stills «оживлены» (water / sky / ken burns)
+  C_drone   — drone/timelapse clip + still motion
+
+Requires ffmpeg. YT sources live in assets/video/ (gitignored); renders are short MP4s.
+"""
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+
+from motion_overlays import make_overlay
+
+ROOT = Path(__file__).resolve().parent
+ASSETS = ROOT / "assets"
+VIDEO = ASSETS / "video"
+OUT = ROOT / "export" / "motion-demos"
+W, H = 1080, 1350
+FPS = 25
+DUR = 4.5  # seconds per slide
+
+
+def run(cmd: list[str]) -> None:
+    print("+", " ".join(cmd[:8]), "...")
+    subprocess.run(cmd, check=True)
+
+
+def overlay_on(video: Path, overlay_png: Path, out: Path, *, t: float | None = None) -> None:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    vf = (
+        f"scale={W}:{H}:force_original_aspect_ratio=increase,"
+        f"crop={W}:{H},setsar=1[bg];"
+        f"[1:v]format=rgba[ov];"
+        f"[bg][ov]overlay=0:0:format=auto"
+    )
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(video),
+        "-i",
+        str(overlay_png),
+        "-filter_complex",
+        vf,
+        "-an",
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-preset",
+        "fast",
+        "-crf",
+        "20",
+    ]
+    if t is not None:
+        cmd += ["-t", str(t)]
+    else:
+        cmd += ["-t", str(DUR)]
+    cmd.append(str(out))
+    run(cmd)
+
+
+def ken_burns(still: Path, out: Path, *, zoom_end: float = 1.18, x_expr: str = "iw/2-(iw/zoom/2)", y_expr: str = "ih/2-(ih/zoom/2)") -> None:
+    """Slow push-in on a still → 4:5 video."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    frames = int(DUR * FPS)
+    # Pre-scale large enough for zoom
+    vf = (
+        f"scale=2400:-2,"
+        f"zoompan=z='min(1+({zoom_end}-1)*on/{frames},{zoom_end})':"
+        f"x='{x_expr}':y='{y_expr}':d={frames}:s={W}x{H}:fps={FPS},"
+        f"setsar=1"
+    )
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            str(still),
+            "-vf",
+            vf,
+            "-t",
+            str(DUR),
+            "-an",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-preset",
+            "fast",
+            "-crf",
+            "20",
+            str(out),
+        ]
+    )
+
+
+def water_alive(still: Path, out: Path) -> None:
+    """Still with wave sway + light shimmer (water/air feel)."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    vf = (
+        f"scale={W+40}:{H+40}:force_original_aspect_ratio=increase,"
+        f"crop={W+40}:{H+40},"
+        f"crop={W}:{H}:"
+        f"'20+12*sin(2*PI*t*0.65)':"
+        f"'20+8*sin(2*PI*t*0.5)',"
+        f"eq=brightness='0.035*sin(2*PI*t*0.85)':saturation='1.1+0.08*sin(2*PI*t*0.4)',"
+        f"setsar=1,fps={FPS}"
+    )
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            str(still),
+            "-vf",
+            vf,
+            "-t",
+            str(DUR),
+            "-an",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-preset",
+            "fast",
+            "-crf",
+            "20",
+            str(out),
+        ]
+    )
+
+
+def sky_drift(still: Path, out: Path) -> None:
+    """Horizontal drift (sky/clouds feel) across a wide still."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    frames = int(DUR * FPS)
+    vf = (
+        f"scale=-2:{H},"
+        f"zoompan=z='1.05':"
+        f"x='(iw-iw/zoom)*on/{frames}':"
+        f"y='(ih-ih/zoom)/3':"
+        f"d={frames}:s={W}x{H}:fps={FPS},"
+        f"setsar=1"
+    )
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            str(still),
+            "-vf",
+            vf,
+            "-t",
+            str(DUR),
+            "-an",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-preset",
+            "fast",
+            "-crf",
+            "20",
+            str(out),
+        ]
+    )
+
+
+def pulse_light(still: Path, out: Path) -> None:
+    """Breathing light / sunset flicker on still."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    vf = (
+        f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+        f"eq=brightness='0.03*sin(2*PI*t*0.45)':contrast='1+0.04*sin(2*PI*t*0.25)',"
+        f"setsar=1,fps={FPS}"
+    )
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            str(still),
+            "-vf",
+            vf,
+            "-t",
+            str(DUR),
+            "-an",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-preset",
+            "fast",
+            "-crf",
+            "20",
+            str(out),
+        ]
+    )
+
+
+def trim_crop(src: Path, out: Path, *, ss: float = 0.0, t: float = DUR) -> None:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-ss",
+            str(ss),
+            "-i",
+            str(src),
+            "-t",
+            str(t),
+            "-vf",
+            f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1",
+            "-an",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-preset",
+            "fast",
+            "-crf",
+            "20",
+            str(out),
+        ]
+    )
+
+
+def compose(bg_mp4: Path, overlay_kind: str, out: Path) -> None:
+    ov = OUT / "_overlays" / f"{overlay_kind}.png"
+    make_overlay(overlay_kind, ov)
+    overlay_on(bg_mp4, ov, out)
+
+
+def write_demo_html(packs: dict[str, list[Path]]) -> None:
+    sections = []
+    for name, files in packs.items():
+        cards = "".join(
+            f'<figure><video src="{p.relative_to(ROOT).as_posix()}" autoplay muted loop playsinline></video>'
+            f"<figcaption>{p.stem}</figcaption></figure>"
+            for p in files
+        )
+        sections.append(f"<section><h2>{name}</h2><div class='row'>{cards}</div></section>")
+    html = f"""<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Motion demos — Зелёный Маршрут</title>
+<style>
+body{{margin:0;background:#0b0b0c;color:#f4f4f5;font-family:system-ui;padding:20px}}
+h1{{font-size:22px;margin:0 0 8px}}
+.lead{{color:#b4b4be;max-width:820px;line-height:1.45;margin-bottom:24px}}
+section{{margin-bottom:36px}}
+h2{{font-size:16px;color:#86efac;margin:0 0 12px}}
+.row{{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}}
+figure{{margin:0;flex:0 0 auto}}
+video{{height:360px;border-radius:12px;background:#111;display:block}}
+figcaption{{font-size:12px;color:#888;margin-top:6px}}
+code{{color:#d8b4fe}}
+</style></head><body>
+<h1>Motion-карусель: видео + оживлённые фото</h1>
+<p class="lead">
+Три пачки примеров. Надписи поверх движения. Без слова «свайп».<br/>
+Источники движения: Ken Burns / рябь-дыхание / дрейф неба / реальное видео Живописного (YT demo) + Москва-река (Wikimedia).<br/>
+Рендер: <code>python3 render_motion_demos.py</code>
+</p>
+{''.join(sections)}
+</body></html>"""
+    path = ROOT / "demo-motion-carousels.html"
+    path.write_text(html, encoding="utf-8")
+    print("demo →", path.relative_to(ROOT))
+
+
+def main():
+    still_ultra = ASSETS / "bridge-ultra-pano.jpg"
+    still_detail = ASSETS / "bridge-detail.jpg"
+    still_pano = ASSETS / "bridge-pano.jpg"
+    yt_short = VIDEO / "yt-zhivopisny-short.mp4"
+    yt_drone = VIDEO / "yt-zhivopisny-drone.mp4"
+    river = VIDEO / "moscow-river-raw.mp4"
+
+    tmp = OUT / "_tmp"
+    tmp.mkdir(parents=True, exist_ok=True)
+
+    # --- shared animated backgrounds ---
+    ken1 = tmp / "ken-ultra.mp4"
+    water1 = tmp / "water-detail.mp4"
+    sky1 = tmp / "sky-ultra.mp4"
+    pulse1 = tmp / "pulse-pano.mp4"
+    ken_detail = tmp / "ken-detail.mp4"
+
+    ken_burns(still_ultra, ken1, zoom_end=1.2, y_expr="ih*0.15")
+    water_alive(still_detail, water1)
+    sky_drift(still_ultra, sky1)
+    pulse_light(still_pano, pulse1)
+    ken_burns(still_detail, ken_detail, zoom_end=1.14, x_expr="iw*0.55-(iw/zoom/2)", y_expr="ih*0.2")
+
+    packs: dict[str, list[Path]] = {}
+
+    # ========== A: MIXED — real video + alive stills ==========
+    a = OUT / "A_mixed"
+    a.mkdir(parents=True, exist_ok=True)
+    # 1 hook — ken burns sunset pano
+    compose(ken1, "hook", a / "01-hook-kenburns.mp4")
+    # 2 answer — REAL zhivopisny video
+    if yt_short.exists():
+        raw = tmp / "yt-short-crop.mp4"
+        trim_crop(yt_short, raw, ss=1.0, t=DUR)
+        compose(raw, "answer", a / "02-answer-realvideo.mp4")
+    else:
+        compose(sky1, "answer", a / "02-answer-skydrift.mp4")
+    # 3 closed — water alive
+    compose(water1, "closed", a / "03-closed-water.mp4")
+    # 4 height — drone/timelapse if present
+    if yt_drone.exists():
+        raw = tmp / "yt-drone-crop.mp4"
+        trim_crop(yt_drone, raw, ss=5.0, t=DUR)
+        compose(raw, "height", a / "04-height-drone.mp4")
+    else:
+        compose(ken_detail, "height", a / "04-height-ken.mp4")
+    # 5 route — sky drift
+    compose(sky1, "route", a / "05-route-skydrift.mp4")
+    # 6 cta — pulse
+    compose(pulse1, "cta", a / "06-cta-pulse.mp4")
+    packs["A · mixed (видео + оживлённые фото)"] = sorted(a.glob("*.mp4"))
+
+    # ========== B: ALL ALIVE STILLS ==========
+    b = OUT / "B_alive_stills"
+    b.mkdir(parents=True, exist_ok=True)
+    compose(ken1, "hook", b / "01-hook-kenburns.mp4")
+    compose(sky1, "answer", b / "02-answer-skydrift.mp4")
+    compose(water1, "closed", b / "03-closed-water.mp4")
+    compose(ken_detail, "height", b / "04-height-ken.mp4")
+    compose(pulse1, "route", b / "05-route-pulse.mp4")
+    # CTA on water breathe
+    compose(water1, "cta", b / "06-cta-water.mp4")
+    packs["B · только оживлённые фото"] = sorted(b.glob("*.mp4"))
+
+    # ========== C: VIDEO-HEAVY ==========
+    c = OUT / "C_video_heavy"
+    c.mkdir(parents=True, exist_ok=True)
+    if yt_drone.exists():
+        raw = tmp / "drone-hook.mp4"
+        trim_crop(yt_drone, raw, ss=0.5, t=DUR)
+        compose(raw, "hook", c / "01-hook-drone.mp4")
+    else:
+        compose(ken1, "hook", c / "01-hook-ken.mp4")
+    if yt_short.exists():
+        raw = tmp / "yt2.mp4"
+        trim_crop(yt_short, raw, ss=4.0, t=DUR)
+        compose(raw, "answer", c / "02-answer-realvideo.mp4")
+        trim_crop(yt_short, tmp / "yt3.mp4", ss=8.0, t=DUR)
+        compose(tmp / "yt3.mp4", "closed", c / "03-closed-realvideo.mp4")
+    else:
+        compose(sky1, "answer", c / "02-answer.mp4")
+        compose(water1, "closed", c / "03-closed.mp4")
+    if river.exists():
+        trim_crop(river, tmp / "river.mp4", ss=0, t=min(DUR, 5))
+        compose(tmp / "river.mp4", "height", c / "04-height-moscow-river.mp4")
+    else:
+        compose(ken_detail, "height", c / "04-height.mp4")
+    compose(sky1, "route", c / "05-route-skydrift.mp4")
+    compose(pulse1, "cta", c / "06-cta-pulse.mp4")
+    packs["C · video-heavy (дрон + мост + река)"] = sorted(c.glob("*.mp4"))
+
+    write_demo_html(packs)
+    meta = {
+        "duration_sec": DUR,
+        "size": f"{W}x{H}",
+        "packs": {k: [p.name for p in v] for k, v in packs.items()},
+        "sources": {
+            "stills": ["bridge-ultra-pano.jpg", "bridge-detail.jpg", "bridge-pano.jpg"],
+            "video_demo": [
+                "yt-zhivopisny-short.mp4 (YouTube WJ7bwcTPBUU — demo only)",
+                "yt-zhivopisny-drone.mp4 (YouTube ZLUaz81C3LU — demo only)",
+                "moscow-river-raw.mp4 (Wikimedia Commons)",
+            ],
+            "note": "YT clips gitignored; regenerate with yt-dlp. Animated stills are ours.",
+        },
+    }
+    (OUT / "index.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    print("done →", OUT)
+
+
+if __name__ == "__main__":
+    main()

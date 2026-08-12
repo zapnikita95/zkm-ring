@@ -55,3 +55,8 @@ ios/build/
 # already listed as dist — ensure untracked
 bot/data/
 __pycache__/
+
+# Instagram motion demos — raw YouTube sources (regenerate with yt-dlp)
+_previews/instagram-carousel/assets/video/yt-*.mp4
+_previews/instagram-carousel/export/motion-demos/_tmp/
+_previews/instagram-carousel/export/motion-demos/_overlays/
