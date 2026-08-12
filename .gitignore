@@ -54,3 +54,4 @@ ios/build/
 # Cap sync web build (regenerate via npm run build)
 # already listed as dist — ensure untracked
 bot/data/
+__pycache__/

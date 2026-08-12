@@ -1,0 +1,29 @@
+{
+  "01": [
+    "hook: 4.95:1 OK",
+    "hook_sub: 7.82:1 OK"
+  ],
+  "02": [
+    "title: 15.00:1 OK",
+    "body: 3.46:1 OK"
+  ],
+  "03": [
+    "title: 4.83:1 OK",
+    "body: 4.99:1 OK"
+  ],
+  "04": [
+    "number: 1.82:1 WEAK",
+    "unit: 6.10:1 OK",
+    "stats: 5.01:1 OK",
+    "source: 4.34:1 WEAK"
+  ],
+  "05": [
+    "title: 9.04:1 OK",
+    "body: 12.45:1 OK"
+  ],
+  "06": [
+    "brand: 12.16:1 OK",
+    "cta: 16.84:1 OK",
+    "btn: 6.31:1 OK"
+  ]
+}

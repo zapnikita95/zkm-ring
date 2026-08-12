@@ -1,0 +1,27 @@
+[
+  {
+    "id": "A",
+    "name": "Bottom-left + акцент-бар",
+    "dir": "export/story-variants-zhivopisny/variant-A"
+  },
+  {
+    "id": "B",
+    "name": "Углы: TR → BL → TR → ML → TL",
+    "dir": "export/story-variants-zhivopisny/variant-B"
+  },
+  {
+    "id": "C",
+    "name": "Гигантская 105 по центру",
+    "dir": "export/story-variants-zhivopisny/variant-C"
+  },
+  {
+    "id": "D",
+    "name": "Рамка вокруг текста (без заливки)",
+    "dir": "export/story-variants-zhivopisny/variant-D"
+  },
+  {
+    "id": "E",
+    "name": "Split: цифра слева / текст снизу-справа",
+    "dir": "export/story-variants-zhivopisny/variant-E"
+  }
+]
