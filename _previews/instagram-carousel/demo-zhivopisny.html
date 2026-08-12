@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SCRL demo · Живописный мост · Зелёный Маршрут</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <h1>Демо карусели SCRL — Живописный мост</h1>
+    <p class="lead">
+      Макет 6 слайдов 4:5 в стиле continuous swipe (как в SCRL). Свайпай горизонтально.
+      Бренд: <b>Зелёный Маршрут</b> · <b>green-route.ru</b>. Layout: L3 + L5 + L10 · CTA #1.
+    </p>
+    <div class="meta">
+      <span class="chip">4:5 · 1080×1350</span>
+      <span class="chip">волна D0</span>
+      <span class="chip">brief: zhivopisny-most</span>
+    </div>
+
+    <div class="phone">
+      <div class="phone-top">
+        <span>Зелёный Маршрут</span>
+        <span>свайп →</span>
+      </div>
+      <div class="scrl" id="scrl" aria-label="Карусель Живописный мост">
+        <!-- 1 HOOK -->
+        <article class="slide">
+          <div class="bg bg-bridge-1"></div>
+          <div class="arch-deco" aria-hidden="true"></div>
+          <div class="veil"></div>
+          <span class="badge-zkm">ЗКМ</span>
+          <div class="hook">
+            В Москве есть мост с «летающей тарелкой» на красной арке
+            <small>свайп → вау-факт · на Зелёном кольце</small>
+          </div>
+        </article>
+        <!-- 2 PLACE (seam continues warm→blue) -->
+        <article class="slide">
+          <div class="bg bg-bridge-2"></div>
+          <div class="veil"></div>
+          <span class="wm">green-route.ru</span>
+          <div class="panel">
+            <div class="k">Место</div>
+            <div class="t">Живописный мост</div>
+            <div class="s">Вантовый переход у Серебряного Бора. Красная арка-пилон и стеклянная капсула — силуэт современной Москвы.</div>
+          </div>
+        </article>
+        <!-- 3 DETAILS -->
+        <article class="slide">
+          <div class="bg bg-bridge-3"></div>
+          <div class="veil"></div>
+          <span class="wm">green-route.ru</span>
+          <div class="panel">
+            <div class="k">Куда встать</div>
+            <div class="t">Набережная / Серебряный Бор на закате</div>
+            <div class="s">Или с линии Зелёного кольца. Для SCRL — wide-кадр арки через 2–3 слайда, шов не по центру капсулы.</div>
+          </div>
+        </article>
+        <!-- 4 WOW L5 -->
+        <article class="slide">
+          <div class="bg bg-bridge-4"></div>
+          <div class="big-num">
+            <div class="n">105</div>
+            <div class="u">метров арки · 72 ванты</div>
+            <div class="d">Основной пролёт 409,5 м. Открыт 27.12.2007. Источник: Wikipedia «Живописный мост».</div>
+          </div>
+        </article>
+        <!-- 5 ON RING -->
+        <article class="slide">
+          <div class="bg bg-bridge-5"></div>
+          <div class="veil"></div>
+          <span class="wm">green-route.ru</span>
+          <div class="panel">
+            <div class="k">На кольце</div>
+            <div class="t">Точка Зелёного кольца Москвы</div>
+            <div class="s">Рядом семейный кусок «Серебряный Бор · Живописный мост». Собери свой старт и финиш — не обязательно весь круг.</div>
+          </div>
+        </article>
+        <!-- 6 CTA -->
+        <article class="slide">
+          <div class="bg bg-bridge-6"></div>
+          <div class="cta">
+            <div class="brand">Зелёный Маршрут</div>
+            <div class="msg">Собери кусок Зелёного кольца мимо Живописного моста</div>
+            <a class="btn" href="https://green-route.ru" target="_blank" rel="noopener">green-route.ru</a>
+          </div>
+        </article>
+      </div>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+      <p class="hint">Непрерывный свайп = эффект SCRL. В приложении — реальные фото поверх этого скелета.</p>
+    </div>
+
+    <p class="nav">
+      <a href="./demo-aqueduct.html">→ демо Акведук</a>
+      ·
+      <a href="../../docs/INSTAGRAM_CONTENT_SYSTEM.md">система контента</a>
+    </p>
+
+    <script>
+      const scrl = document.getElementById('scrl')
+      const dots = document.getElementById('dots')
+      const n = scrl.children.length
+      for (let i = 0; i < n; i++) {
+        const s = document.createElement('span')
+        if (i === 0) s.className = 'on'
+        dots.appendChild(s)
+      }
+      scrl.addEventListener('scroll', () => {
+        const i = Math.round(scrl.scrollLeft / scrl.children[0].offsetWidth)
+        ;[...dots.children].forEach((d, j) => d.classList.toggle('on', j === i))
+      })
+    </script>
+  </body>
+</html>
