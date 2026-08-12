@@ -479,14 +479,13 @@ def render_variant(v: Variant, strip: Image.Image, detail: Image.Image) -> dict:
 
     # --- 4 scale (NO wow label, huge number, spaced) ---
     audit = []
-    base = ImageEnhance.Brightness(grade(cover_crop(detail, W, H, (0.55, 0.4)))).enhance(0.38)
+    # Keep photo readable — no heavy whole-frame dunk; stroke carries contrast
+    base = ImageEnhance.Brightness(grade(cover_crop(detail, W, H, (0.55, 0.4)))).enhance(0.72)
     s = base.convert("RGBA")
-    # faint watermark number
     big = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     bd = ImageDraw.Draw(big)
-    bd.text((20, 160), "105", font=font(FONT_BLACK, 380), fill=(255, 255, 255, 22))
+    bd.text((20, 160), "105", font=font(FONT_BLACK, 380), fill=(255, 255, 255, 18))
     s = Image.alpha_composite(s, big)
-    s = soft_zone(s, 250, 1100, 90)
     d = ImageDraw.Draw(s, "RGBA")
     if v.corners != "off":
         frame_corners(d)
@@ -496,67 +495,82 @@ def render_variant(v: Variant, strip: Image.Image, detail: Image.Image) -> dict:
     slot = v.slots[4]
     c4 = COPY[4]
 
+    # Fixed vertical advances — glyph metrics alone leave "105" visually crushed into unit
+    GAP_NUM_UNIT = 96
+    GAP_UNIT_STATS = 56
+    GAP_STATS_SRC = 48
+
     if v.giant_center_fact:
-        fnum = font(FONT_BLACK, 280)
+        fnum = font(FONT_BLACK, 300)
         probe = ImageDraw.Draw(s_rgb)
         nw = int(probe.textlength(c4["number"], font=fnum))
         nx = (W - nw) // 2
-        s_rgb, y = draw_safe(
-            s_rgb, c4["number"], (nx, 300), fnum, CREAM, nw + 20,
+        num_y = 260
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["number"], (nx, num_y), fnum, CREAM, nw + 20,
             label="number", audit=audit, line_gap=1.0,
         )
-        s_rgb, y = draw_safe(
-            s_rgb, c4["unit"], (64, y + 48), font(FONT_BLACK, 56), CREAM, W - 128,
+        y = num_y + 300 + GAP_NUM_UNIT
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["unit"], (64, y), font(FONT_BLACK, 56), CREAM, W - 128,
             label="unit", audit=audit,
         )
-        s_rgb, y = draw_safe(
-            s_rgb, c4["stats"], (64, y + 44), font(FONT_BOLD, 34), GOLD, W - 128,
+        y = y + 56 + GAP_UNIT_STATS
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["stats"], (64, y), font(FONT_BOLD, 34), GOLD, W - 128,
             label="stats", audit=audit,
         )
+        y = y + 34 + GAP_STATS_SRC
         s_rgb, _ = draw_safe(
-            s_rgb, c4["source"], (64, y + 40), font(FONT_REG, 24), MUTED, W - 128,
+            s_rgb, c4["source"], (64, y), font(FONT_REG, 24), MUTED, W - 128,
             label="source", audit=audit,
         )
     elif v.split_fact:
-        s_rgb, y = draw_safe(
-            s_rgb, c4["number"], (36, 260), font(FONT_BLACK, 260), CREAM, 720,
+        num_y = 240
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["number"], (36, num_y), font(FONT_BLACK, 260), CREAM, 720,
             label="number", audit=audit, line_gap=1.0,
         )
-        s_rgb, y = draw_safe(
-            s_rgb, c4["unit"], (48, y + 48), font(FONT_BLACK, 52), CREAM, 700,
+        y = num_y + 260 + GAP_NUM_UNIT
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["unit"], (48, y), font(FONT_BLACK, 52), CREAM, 700,
             label="unit", audit=audit,
         )
         s_rgb, y = draw_safe(
-            s_rgb, c4["stats"], (48, 980), font(FONT_BOLD, 32), GOLD, W - 96,
+            s_rgb, c4["stats"], (48, 1000), font(FONT_BOLD, 32), GOLD, W - 96,
             label="stats", audit=audit, align="right",
         )
         s_rgb, _ = draw_safe(
-            s_rgb, c4["source"], (48, y + 36), font(FONT_REG, 24), MUTED, W - 96,
+            s_rgb, c4["source"], (48, y + GAP_STATS_SRC), font(FONT_REG, 24), MUTED, W - 96,
             label="source", audit=audit, align="right",
         )
         ImageDraw.Draw(s_rgb, "RGBA").rectangle((48, 280, 58, 560), fill=WARM)
     else:
-        num_size = 240
-        s_rgb, y = draw_safe(
-            s_rgb, c4["number"], (slot.x, slot.y), font(FONT_BLACK, num_size), CREAM, slot.max_w,
+        num_size = 260
+        num_y = slot.y
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["number"], (slot.x, num_y), font(FONT_BLACK, num_size), CREAM, slot.max_w,
             label="number", audit=audit, line_gap=1.0, align=slot.align,
         )
-        s_rgb, y = draw_safe(
-            s_rgb, c4["unit"], (slot.x, y + 52), font(FONT_BLACK, 54), CREAM, slot.max_w,
+        y = num_y + num_size + GAP_NUM_UNIT
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["unit"], (slot.x, y), font(FONT_BLACK, 54), CREAM, slot.max_w,
             label="unit", audit=audit, align=slot.align,
         )
-        s_rgb, y = draw_safe(
-            s_rgb, c4["stats"], (slot.x, y + 44), font(FONT_BOLD, 34), GOLD, slot.max_w,
+        y = y + 54 + GAP_UNIT_STATS
+        s_rgb, _ = draw_safe(
+            s_rgb, c4["stats"], (slot.x, y), font(FONT_BOLD, 34), GOLD, slot.max_w,
             label="stats", audit=audit, align=slot.align,
         )
+        y = y + 34 + GAP_STATS_SRC
         s_rgb, _ = draw_safe(
-            s_rgb, c4["source"], (slot.x, y + 40), font(FONT_REG, 24), MUTED, slot.max_w,
+            s_rgb, c4["source"], (slot.x, y), font(FONT_REG, 24), MUTED, slot.max_w,
             label="source", audit=audit, align=slot.align,
         )
         if v.frame_text:
-            text_frame(ImageDraw.Draw(s_rgb, "RGBA"), (slot.x, slot.y, slot.x + 700, y + 40))
+            text_frame(ImageDraw.Draw(s_rgb, "RGBA"), (slot.x, num_y, slot.x + 700, y + 40))
         if v.accent_bar:
-            ImageDraw.Draw(s_rgb, "RGBA").rectangle((48, slot.y + 20, 58, slot.y + 320), fill=WARM)
+            ImageDraw.Draw(s_rgb, "RGBA").rectangle((48, num_y + 20, 58, num_y + 360), fill=WARM)
 
     d = ImageDraw.Draw(s_rgb, "RGBA")
     progress(d, 4)
