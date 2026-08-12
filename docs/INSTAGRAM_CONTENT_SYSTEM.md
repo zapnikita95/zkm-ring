@@ -106,28 +106,31 @@ Briefs: `docs/instagram/briefs/`. Шаблон: `docs/instagram/place-brief-TEMP
 
 ---
 
-## 6. SCRL + демо (не градиенты)
+## 6. Боевая карусель + авто-контраст + SCRL
 
-**Демо v2 (реальные слайды 1080×1350):**
+**Ready-to-post (одна):**
 
-- Превью: [`_previews/instagram-carousel/demo-zhivopisny.html`](../_previews/instagram-carousel/demo-zhivopisny.html), [`demo-aqueduct.html`](../_previews/instagram-carousel/demo-aqueduct.html)  
-- JPEG: `_previews/instagram-carousel/export/zhivopisny/`, `…/aqueduct/`  
-- Слайды 1–3 нарезаны из одного wide-фото (SCRL seam).  
-- Перерендер: `python3 _previews/instagram-carousel/render_carousels.py`
+- Превью: [`demo-battle-zhivopisny.html`](../_previews/instagram-carousel/demo-battle-zhivopisny.html)  
+- JPEG: `_previews/instagram-carousel/export/battle-zhivopisny/slide-01…06.jpg`  
+- Контраст: `contrast.py` — сетка пикселей под bbox, WCAG worst-case; **оранжевый/gold только на тёмной плашке**  
+- Аудит: `export/battle-zhivopisny/contrast-audit.json` (не постить при `FAIL`)  
+- Сборка: `python3 _previews/instagram-carousel/render_battle_zhivopisny.py`
 
-**Сборка в SCRL (прод):**
+**Демо v2:** `demo-zhivopisny.html` / `demo-aqueduct.html` · `render_carousels.py`
+
+**Сборка в SCRL (прод / свои фото):**
 
 1. SCRL → Blank → 6 frames → **4:5**.  
-2. Wide-фото через швы (арка / аркады); шов не по центру объекта.  
+2. Wide-фото через швы; шов не по центру объекта.  
 3. Хук только frame 1; CTA — последний; «свайп →» только на 1.  
-4. Preview → Export → проверить порядок (иногда reverse).  
-5. Instagram + музыка.
+4. Preview → Export → порядок → Instagram + музыка.
 
-Правила «что считается пиздатой каруселью» — в skill § «Как делать пиздатые карусели».
+Правила карусели — в skill § «Как делать пиздатые карусели».
 
 ---
 
-## 7. Дальше (не в этой волне)
+## 7. Дальше
 
-- Reels из тех же вау-фактов — отдельный skill.  
-- Остальные places из рейтинга 5–12 — по одному brief перед постом.
+- Несколько вариаций шаблона на ту же точку (следующий шаг).  
+- Reels из вау-фактов — отдельный skill.  
+- Остальные places 2–12 — brief + battle render.
