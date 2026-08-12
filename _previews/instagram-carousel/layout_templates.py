@@ -60,3 +60,25 @@ def assert_no_banned(text: str, where: str = "") -> None:
 
 # Preferred product wording
 # отрезок ✓ · кусок ✗
+
+
+# Schema IDs used in CAROUSEL_STRUCTURE / PLACEMENT_SCHEMAS (S01…S10)
+# Map loosely onto TextStack slots when wiring battle renders:
+SCHEMA_TO_STACK = {
+    "S01": "T_BL",
+    "S02": "T_BR",
+    "S03": "T_TL",
+    "S04": "T_TR",
+    "S05": "T_ML",
+    "S06": "T_BC",
+    "S07": "T_TL",  # + body at bottom — custom draw
+    "S08": "T_CARD",
+    "S09": None,  # collage band — custom
+    "S10": None,  # quad collage — custom
+}
+
+
+def assert_no_adjacent_same(schemas: list[str]) -> None:
+    for i in range(1, len(schemas)):
+        if schemas[i] == schemas[i - 1]:
+            raise ValueError(f"Adjacent slides share schema {schemas[i]} at {i}/{i+1}")
