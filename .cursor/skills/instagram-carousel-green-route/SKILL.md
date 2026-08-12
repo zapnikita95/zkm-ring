@@ -208,6 +208,11 @@ description: >-
 - [ ] Caption: 1–2 абзаца + URL + 3–5 хештегов (#зелёноекольцо #москва #зелёныймаршрут…)  
 - [ ] Не кликбейт про болезнь / «99% умрут»
 
+## Motion (видео / оживлённые фото)
+
+См. `docs/instagram/MOTION_CAROUSELS.md` + `render_motion_demos.py`.  
+Демо: `demo-motion-carousels.html` (A mixed / B alive stills / C video-heavy).
+
 ## Когда читать skill
 
 Любая задача про Instagram / карусель / SCRL / пост про точку на ЗКМ / place brief для Зелёный Маршрут.
