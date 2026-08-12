@@ -48,7 +48,16 @@ description: >-
 - Разные aspect ratio внутри одной карусели  
 - «Свайп» на каждом кадре  
 
-**Эталон в репо:** `_previews/instagram-carousel/export/{zhivopisny,aqueduct}/` — JPEG, которые уже можно крутить в IG; HTML-превью — `demo-*.html`. Перерендер: `python3 _previews/instagram-carousel/render_carousels.py`.
+**Эталон в репо:**
+
+| Что | Путь |
+|-----|------|
+| **Боевая карусель (одна, готовая)** | `export/battle-zhivopisny/slide-01…06.jpg` + `demo-battle-zhivopisny.html` |
+| Демо v2 | `export/{zhivopisny,aqueduct}/` |
+| Авто-контраст | `contrast.py` — сэмпл пикселей под bbox, WCAG worst-case; **warm/gold всегда на тёмной плашке** |
+| Боевой рендер | `python3 render_battle_zhivopisny.py` → пишет `contrast-audit.json` |
+
+Нельзя постить слайд, если в audit есть `FAIL`.
 
 ## Аудитория (Метрика `111389829`, ориентир)
 

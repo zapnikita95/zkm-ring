@@ -1,0 +1,30 @@
+{
+  "01": [
+    "hook: 14.78:1 OK",
+    "hook_sub: 10.45:1 OK"
+  ],
+  "02": [
+    "kicker: 11.60:1 OK",
+    "body: 14.57:1 OK"
+  ],
+  "03": [
+    "kicker: 10.69:1 OK",
+    "body: 6.47:1 OK"
+  ],
+  "04": [
+    "kicker: 9.88:1 OK",
+    "number: 3.96:1 OK",
+    "unit: 12.80:1 OK",
+    "stats: 10.62:1 OK",
+    "source: 9.22:1 OK"
+  ],
+  "05": [
+    "kicker: 13.61:1 OK",
+    "body: 13.33:1 OK"
+  ],
+  "06": [
+    "brand: 12.16:1 OK",
+    "cta_msg: 16.84:1 OK",
+    "cta_btn: 6.31:1 OK"
+  ]
+}

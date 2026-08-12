@@ -4,8 +4,12 @@
 
 | Демо | Слайды | Открыть |
 |------|--------|---------|
-| Живописный мост | `export/zhivopisny/` | [demo-zhivopisny.html](./demo-zhivopisny.html) |
+| **БОЕВАЯ · Живописный мост** | `export/battle-zhivopisny/` | [demo-battle-zhivopisny.html](./demo-battle-zhivopisny.html) |
+| Живописный мост (v2) | `export/zhivopisny/` | [demo-zhivopisny.html](./demo-zhivopisny.html) |
 | Ростокинский акведук | `export/aqueduct/` | [demo-aqueduct.html](./demo-aqueduct.html) |
+
+**Боевая** = графика + `contrast.py` (авто-плашки, если текст сливается с фото) + audit JSON.  
+Сборка: `python3 render_battle_zhivopisny.py`
 
 ## Как смотреть
 
