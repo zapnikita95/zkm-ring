@@ -2,8 +2,8 @@
 name: instagram-carousel-green-route
 description: >-
   Instagram-карусели про точки Зелёного кольца для Зелёный Маршрут / green-route.ru.
-  SCRL continuous swipe, хук → вау-факт → CTA. Триггеры: инстаграм, карусель, SCRL,
-  пост про достопримечательность, контент ЗКМ, place brief.
+  Хук = картинка + твист, дальше раскрутка той же темы, CTA. Триггеры: инстаграм,
+  карусель, пост про достопримечательность, контент ЗКМ, place brief.
 ---
 
 # Instagram-карусели: точки ЗКМ → SCRL
@@ -98,6 +98,7 @@ description: >-
 | 6 | Зазывалочка (CTA) |
 
 Канон: `docs/instagram/CAROUSEL_STRUCTURE.md` · шаблон: `stories/_TEMPLATE.md` · эталон: `stories/zhivopisny-flying-saucer.md`.  
+**Хук:** картинка + твист, дальше раскрутка той же темы — `docs/instagram/stories/_VOICE.md`.  
 **Раскладки по ролям:** `docs/instagram/ROLE_LAYOUT_VARIANTS.md` (`R1–R6` × A–D) · демо `demo-role-layout-variants.html`.  
 Словарь семей: `PLACEMENT_SCHEMAS.md`. Соседи ≠ одна семья.
 

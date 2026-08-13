@@ -1,7 +1,8 @@
 # Канон карусели Зелёный Маршрут (масштабируемая структура)
 
 Документ для сборки **любого** поста про точку на Зелёном кольце.  
-Эталон реализации: Живописный мост → `docs/instagram/stories/zhivopisny-flying-saucer.md` + `export/upload-zhivopisny/`.
+Эталон реализации: Живописный мост → `docs/instagram/stories/zhivopisny-flying-saucer.md` + `export/upload-zhivopisny/`.  
+Голос хука (картинка + твист, раскрутка той же темы): [`stories/_VOICE.md`](./stories/_VOICE.md).
 
 ---
 
