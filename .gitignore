@@ -60,3 +60,7 @@ __pycache__/
 _previews/instagram-carousel/assets/video/yt-*.mp4
 _previews/instagram-carousel/export/motion-demos/_tmp/
 _previews/instagram-carousel/export/motion-demos/_overlays/
+# fat delivery copies (use assemble_delivery_pack.py --fat locally)
+_previews/instagram-carousel/export/delivery-*/photo/
+_previews/instagram-carousel/export/delivery-*/video/
+_previews/instagram-carousel/export/delivery-*/mixed/

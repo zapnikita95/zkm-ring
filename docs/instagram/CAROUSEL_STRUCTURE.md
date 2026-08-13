@@ -85,6 +85,7 @@ Skill: `.cursor/skills/instagram-carousel-green-route/SKILL.md`.
 | 2026-08 | Upload-пакет Живописный: `export/upload-zhivopisny/` |
 | 2026-08 | **Варианты раскладок на каждую роль** `R1–R6` × A–D (`ROLE_LAYOUT_VARIANTS.md`) |
 | 2026-08 | R2: верх/центр/коллаж-верх; жёсткая зона top/mid/bottom (`role_layout_zones.py`) |
+| 2026-08 | Delivery-канон: PHOTO + VIDEO + MIXED до выбора (`DELIVERY_CANON.md`) |
 
 ---
 

@@ -1,0 +1,61 @@
+{
+  "slug": "zhivopisny",
+  "packs": [
+    "photo",
+    "video",
+    "mixed"
+  ],
+  "photo_path": "export/upload-zhivopisny/photo",
+  "video_path": "export/motion-demos/C_video_heavy",
+  "mixed_path": "export/motion-demos/A_mixed",
+  "role_mix_photo": [
+    "R1-A",
+    "R2-D",
+    "R3-B",
+    "R4-A",
+    "R5-A",
+    "R6-B"
+  ],
+  "role_mix_video": [
+    "R1-A",
+    "R2-C",
+    "R3-B",
+    "R4-A",
+    "R5-A",
+    "R6-B"
+  ],
+  "role_mix_mixed": [
+    "R1-A",
+    "R2-C",
+    "R3-B",
+    "R4-A",
+    "R5-A",
+    "R6-B"
+  ],
+  "photo_files": [
+    "slide-01.jpg",
+    "slide-02.jpg",
+    "slide-03.jpg",
+    "slide-04.jpg",
+    "slide-05.jpg",
+    "slide-06.jpg"
+  ],
+  "video_files": [
+    "01-hook-drone.mp4",
+    "02-answer-realvideo.mp4",
+    "03-closed-realvideo.mp4",
+    "04-height-drone.mp4",
+    "05-route-map.mp4",
+    "06-cta-pulse.mp4"
+  ],
+  "mixed_files": [
+    "01-hook-kenburns.mp4",
+    "02-answer-realvideo.mp4",
+    "03-closed-water.mp4",
+    "04-height-drone.mp4",
+    "05-route-map.mp4",
+    "06-cta-pulse.mp4"
+  ],
+  "canon": "docs/instagram/DELIVERY_CANON.md",
+  "demo": "demo-delivery-zhivopisny.html"
+}
