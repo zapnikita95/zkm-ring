@@ -9,16 +9,16 @@
     "cta"
   ],
   "layouts": [
-    "S01",
-    "S09",
-    "S04",
-    "S05",
-    "S03",
-    "S08"
+    "R1-A",
+    "R2-D",
+    "R3-B",
+    "R4-A",
+    "R5-A",
+    "R6-B"
   ],
   "collages": [
-    "slide-02 S09 two-up",
-    "slide-03 S10 quad"
+    "slide-02 R2-D top-band two-up",
+    "slide-03 R3-B quad + bottom stack"
   ],
   "map": "slide-05 Carto + ring + pin"
 }
