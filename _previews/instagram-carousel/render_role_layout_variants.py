@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFont
 
 from graphics import cover_crop_strict, isometric_football_pitch, paste_rgba
 from layout_templates import assert_no_banned
+from role_layout_zones import PREFERRED_PHOTO, PREFERRED_VIDEO, assert_mix
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
@@ -175,6 +176,26 @@ def veil_bottom(s: Image.Image, start: int, strength=150) -> Image.Image:
     return Image.alpha_composite(s.convert("RGBA"), v)
 
 
+def veil_top(s: Image.Image, end: int, strength=155) -> Image.Image:
+    v = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(v)
+    for y in range(0, end):
+        t = 1 - y / max(1, end)
+        d.line([(0, y), (W, y)], fill=(8, 10, 8, int(strength * (t**1.1))))
+    return Image.alpha_composite(s.convert("RGBA"), v)
+
+
+def veil_mid(s: Image.Image, y0: int, y1: int, strength=140) -> Image.Image:
+    v = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(v)
+    mid = (y0 + y1) / 2
+    half = max(1, (y1 - y0) / 2)
+    for y in range(y0, y1):
+        t = 1 - abs(y - mid) / half
+        d.line([(0, y), (W, y)], fill=(8, 10, 8, int(strength * (t**1.05))))
+    return Image.alpha_composite(s.convert("RGBA"), v)
+
+
 def collage_two(a: Image.Image, b: Image.Image) -> Image.Image:
     top_h = int(H * 0.62)
     gap = 8
@@ -259,61 +280,82 @@ def render_r1(ultra, detail):
 
 
 def render_r2(detail, pano, ultra):
+    """R2 pool: after bottom R1, text must sit top / mid — not another bottom stack.
+
+    A верх-лево · B верх-право · C центр · D коллаж+текст сверху · E низ-лево (только после top R1)
+    """
     c = COPY[2]
-    # A collage band
-    base = collage_two(detail, pano)
-    band = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(band)
-    bd.rectangle((0, int(H * 0.62), W, H), fill=(12, 14, 12, 235))
-    bd.rectangle((0, int(H * 0.62), W, int(H * 0.62) + 6), fill=(*GREEN, 255))
-    s = Image.alpha_composite(base.convert("RGBA"), band)
+
+    # A top-left full stack
+    s = veil_top(cover(detail, center=(0.55, 0.42)), 720, 165)
     d = ImageDraw.Draw(s, "RGBA")
+    corners(d)
     watermark(d)
     badge(d, "R2-A")
-    y0 = int(H * 0.62) + 24
-    bar(d, BAR_X, y0, 140)
-    y = stroke(d, c["title"], (TEXT_X, y0), font(FONT_BLACK, 46), CREAM, W - TEXT_X - 48, sw=4)
-    stroke(d, c["body"], (TEXT_X, y + 18), font(FONT_BOLD, 26), CREAM, W - TEXT_X - 48, sw=3, line_gap=1.14)
+    ty = 110
+    bar(d, BAR_X, ty, 200)
+    y = stroke(d, c["title"], (TEXT_X, ty), font(FONT_BLACK, 48), CREAM, W - TEXT_X - 48, sw=5)
+    stroke(d, c["body"], (TEXT_X, y + 20), font(FONT_BOLD, 28), CREAM, W - TEXT_X - 48, sw=3, line_gap=1.14)
     save(2, "A", s)
 
-    # B split
-    s = veil_bottom(cover(pano, center=(0.5, 0.45)), 820, 160)
+    # B top-right full stack
+    s = veil_top(cover(pano, center=(0.4, 0.4)), 720, 165)
     d = ImageDraw.Draw(s, "RGBA")
     corners(d)
     watermark(d)
     badge(d, "R2-B")
-    bar(d, BAR_X, 120, 100)
-    stroke(d, c["title"], (TEXT_X, 128), font(FONT_BLACK, 48), CREAM, 700, sw=5)
-    stroke(d, c["body"], (48, 920), font(FONT_BOLD, 28), CREAM, W - 96, sw=3, line_gap=1.14)
+    max_w = 620
+    tx = W - 48 - max_w
+    bar(d, W - 48 - BAR_W, 110, 200, GREEN)
+    y = stroke(d, c["title"], (tx, 120), font(FONT_BLACK, 46), CREAM, max_w - 16, sw=5, align="right")
+    stroke(d, c["body"], (tx, y + 18), font(FONT_BOLD, 26), CREAM, max_w - 16, sw=3, line_gap=1.14, align="right")
     save(2, "B", s)
 
-    # C bottom-left
-    s = veil_bottom(cover(detail, center=(0.7, 0.35)), 720, 165)
+    # C center stack
+    s = veil_mid(cover(ultra, center=(0.48, 0.42)), 380, 980, 155)
     d = ImageDraw.Draw(s, "RGBA")
     corners(d)
     watermark(d)
     badge(d, "R2-C")
+    max_w = W - 160
+    y = stroke(d, c["title"], (80, 460), font(FONT_BLACK, 48), CREAM, max_w, sw=5, align="center")
+    stroke(d, c["body"], (80, y + 22), font(FONT_BOLD, 28), CREAM, max_w, sw=3, line_gap=1.14, align="center")
+    save(2, "C", s)
+
+    # D collage + TOP text band (photos below — not bottom twin of R1-A)
+    band_h = int(H * 0.40)
+    photo_h = H - band_h
+    gap = 8
+    half = (W - gap) // 2
+    canvas = Image.new("RGB", (W, H), (12, 14, 12))
+    canvas.paste(cover(detail, half, photo_h, (0.55, 0.35)), (0, band_h))
+    canvas.paste(cover(pano, W - half - gap, photo_h, (0.45, 0.4)), (half + gap, band_h))
+    s = canvas.convert("RGBA")
+    band = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(band)
+    bd.rectangle((0, 0, W, band_h), fill=(12, 14, 12, 235))
+    bd.rectangle((0, band_h - 6, W, band_h), fill=(*GREEN, 255))
+    s = Image.alpha_composite(s, band)
+    d = ImageDraw.Draw(s, "RGBA")
+    watermark(d)
+    badge(d, "R2-D")
+    y0 = 56
+    bar(d, BAR_X, y0 + 8, 160)
+    y = stroke(d, c["title"], (TEXT_X, y0), font(FONT_BLACK, 46), CREAM, W - TEXT_X - 48, sw=4)
+    stroke(d, c["body"], (TEXT_X, y + 16), font(FONT_BOLD, 26), CREAM, W - TEXT_X - 48, sw=3, line_gap=1.12)
+    save(2, "D", s)
+
+    # E bottom-left — pair with top R1 only
+    s = veil_bottom(cover(detail, center=(0.7, 0.35)), 720, 165)
+    d = ImageDraw.Draw(s, "RGBA")
+    corners(d)
+    watermark(d)
+    badge(d, "R2-E")
     ty = 780
     bar(d, BAR_X, ty, 220)
     y = stroke(d, c["title"], (TEXT_X, ty), font(FONT_BLACK, 48), CREAM, W - TEXT_X - 48, sw=5)
     stroke(d, c["body"], (TEXT_X, y + 20), font(FONT_BOLD, 28), CREAM, W - TEXT_X - 48, sw=3, line_gap=1.14)
-    save(2, "C", s)
-
-    # D bottom-right
-    s = veil_bottom(cover(ultra, center=(0.35, 0.4)), 720, 165)
-    d = ImageDraw.Draw(s, "RGBA")
-    corners(d)
-    watermark(d)
-    badge(d, "R2-D")
-    # pin cue
-    d.ellipse((70, 100, 130, 160), fill=(*WARM, 255))
-    d.ellipse((88, 118, 112, 142), fill=(255, 255, 255, 255))
-    max_w = 560
-    tx = W - 48 - max_w
-    bar(d, W - 48 - BAR_W, 800, 220, GREEN)
-    y = stroke(d, c["title"], (tx, 810), font(FONT_BLACK, 46), CREAM, max_w - 16, sw=5, align="right")
-    stroke(d, c["body"], (tx, y + 18), font(FONT_BOLD, 26), CREAM, max_w - 16, sw=3, line_gap=1.14, align="right")
-    save(2, "D", s)
+    save(2, "E", s)
 
 
 def render_r3(detail, pano, ultra, hero):
@@ -533,6 +575,9 @@ def render_r6(pano):
 
 
 def main():
+    assert_mix(PREFERRED_PHOTO)
+    assert_mix(PREFERRED_VIDEO)
+
     ultra = load("bridge-ultra-pano.jpg")
     detail = load("bridge-detail.jpg")
     pano = load("bridge-pano.jpg")
@@ -546,6 +591,8 @@ def main():
     render_r5(mapa)
     render_r6(pano)
     print("done →", OUT)
+    print("preferred photo:", " · ".join(PREFERRED_PHOTO))
+    print("preferred video:", " · ".join(PREFERRED_VIDEO))
 
 
 if __name__ == "__main__":

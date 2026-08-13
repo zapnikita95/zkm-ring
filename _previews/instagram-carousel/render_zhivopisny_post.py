@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Production upload pack: Живописный мост — photo (with collages) + layout mix.
+"""Production upload pack: Живописный мост — photo (with collages) + role mix.
 
-Schemas: 1→S01 · 2→S09 · 3→S04 · 4→S05 · 5→S03 · 6→S08
-No two consecutive slides share the same placement family.
+Role mix: R1-A · R2-D · R3-B · R4-A · R5-A · R6-B
+Zones: bottom → top → bottom → mid → top → bottom (see role_layout_zones.py).
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 from graphics import cover_crop_strict, isometric_football_pitch, paste_rgba
 from layout_templates import assert_no_banned
+from role_layout_zones import PREFERRED_PHOTO, assert_mix
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
@@ -35,7 +36,7 @@ FONT_REG = "/System/Library/Fonts/Supplemental/Arial.ttf"
 BAR_X, BAR_W, TEXT_GAP = 48, 10, 32
 TEXT_X = BAR_X + BAR_W + TEXT_GAP
 
-LAYOUT_MIX = ["S01", "S09", "S04", "S05", "S03", "S08"]
+LAYOUT_MIX = list(PREFERRED_PHOTO)
 
 
 def font(path: str, size: int) -> ImageFont.FreeTypeFont:
@@ -198,12 +199,6 @@ def collage_quad(a, b, c, d, gap=6) -> Image.Image:
     return canvas
 
 
-def assert_layout_mix(mix: list[str]) -> None:
-    for i in range(1, len(mix)):
-        if mix[i] == mix[i - 1]:
-            raise ValueError(f"Adjacent same layout: {mix[i - 1]} at {i}/{i+1}")
-
-
 def save(img: Image.Image, idx: int):
     PHOTO.mkdir(parents=True, exist_ok=True)
     path = PHOTO / f"slide-{idx:02d}.jpg"
@@ -221,13 +216,13 @@ def ensure_map() -> Image.Image:
 
 
 def main():
-    assert_layout_mix(LAYOUT_MIX)
+    assert_mix(LAYOUT_MIX)
     ultra = load("bridge-ultra-pano.jpg")
     detail = load("bridge-detail.jpg")
     pano = load("bridge-pano.jpg")
     hero = load("bridge-hero.jpg") if (ASSETS / "bridge-hero.jpg").exists() else detail
 
-    # ----- 1 S01 hook -----
+    # ----- 1 R1-A bottom hook -----
     s = bottom_veil(cover(ultra, W, H, (0.42, 0.38)), 640, 155)
     d = ImageDraw.Draw(s, "RGBA")
     frame_corners(d)
@@ -239,62 +234,57 @@ def main():
     progress(d, 1)
     save(s.convert("RGB"), 1)
 
-    # ----- 2 S09 collage + text band -----
-    base = collage_two_up(detail, pano)
-    # dark band bottom
+    # ----- 2 R2-D collage + TOP text (not bottom twin of R1-A) -----
+    band_h = int(H * 0.40)
+    photo_h = H - band_h
+    gap = 8
+    half = (W - gap) // 2
+    canvas = Image.new("RGB", (W, H), (12, 14, 12))
+    canvas.paste(cover(detail, half, photo_h, (0.55, 0.35)), (0, band_h))
+    canvas.paste(cover(pano, W - half - gap, photo_h, (0.45, 0.4)), (half + gap, band_h))
+    s = canvas.convert("RGBA")
     band = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     bd = ImageDraw.Draw(band)
-    bd.rectangle((0, int(H * 0.62), W, H), fill=(12, 14, 12, 235))
-    bd.rectangle((0, int(H * 0.62), W, int(H * 0.62) + 6), fill=(*GREEN, 255))
-    s = Image.alpha_composite(base.convert("RGBA"), band)
+    bd.rectangle((0, 0, W, band_h), fill=(12, 14, 12, 235))
+    bd.rectangle((0, band_h - 6, W, band_h), fill=(*GREEN, 255))
+    s = Image.alpha_composite(s, band)
     d = ImageDraw.Draw(s, "RGBA")
     watermark(d)
-    y0 = int(H * 0.62) + 28
-    accent_bar(d, BAR_X, y0, 160)
+    y0 = 56
+    accent_bar(d, BAR_X, y0 + 8, 160)
     y = draw_stroke(d, "Живописный мост", (TEXT_X, y0), font(FONT_BLACK, 48), CREAM, W - TEXT_X - 48, stroke=5)
     draw_stroke(
         d,
         "Капсулу под красной аркой задумывали как ресторан в воздухе — с видом на Москву-реку и Серебряный Бор. Мост открыли в 2007 году, и с тех пор его силуэт узнают даже те, кто не помнит название.",
-        (TEXT_X, y + 22),
+        (TEXT_X, y + 18),
         font(FONT_BOLD, 28),
         CREAM,
         W - TEXT_X - 48,
         stroke=3,
-        line_gap=1.16,
+        line_gap=1.14,
     )
     progress(d, 2)
     save(s.convert("RGB"), 2)
 
-    # ----- 3 S04 top-right emotion (different from S09) -----
-    # Second collage: quad light — counts as collage #2
+    # ----- 3 R3-B bottom-left warm on collage #2 -----
     base = collage_quad(pano, detail, hero, ultra)
-    s = ImageEnhance.Brightness(base).enhance(0.72).convert("RGBA")
-    # soft top-right readability veil
-    veil = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    vd = ImageDraw.Draw(veil)
-    for yv in range(0, 560):
-        t = 1 - yv / 560
-        vd.line([(W // 3, yv), (W, yv)], fill=(8, 10, 8, int(140 * (t**1.2))))
-    s = Image.alpha_composite(s, veil)
+    s = ImageEnhance.Brightness(base).enhance(0.78).convert("RGBA")
+    s = bottom_veil(s, 680, 170)
     d = ImageDraw.Draw(s, "RGBA")
     frame_corners(d, color=(*WARM, 90))
     watermark(d)
-    # right-aligned stack
-    max_w = 560
-    tx = W - 48 - max_w
-    ty = 110
-    accent_bar(d, W - 48 - BAR_W, ty, 240, WARM)
-    y = draw_stroke(d, "Капсула закрыта", (tx, ty), font(FONT_BLACK, 50), CREAM, max_w - 20, stroke=5, align="right")
+    ty = 780
+    accent_bar(d, BAR_X, ty, 240, WARM)
+    y = draw_stroke(d, "Капсула закрыта", (TEXT_X, ty), font(FONT_BLACK, 50), CREAM, W - TEXT_X - 48, stroke=5)
     draw_stroke(
         d,
         "Публику внутрь так и не пустили — планы менялись, доступ не открыли. Зато снаружи это одна из самых желанных точек для фото: «тарелка» держит кадр сама.",
-        (tx, y + 28),
+        (TEXT_X, y + 24),
         font(FONT_BOLD, 30),
         GOLD,
-        max_w - 20,
+        W - TEXT_X - 48,
         stroke=3,
         line_gap=1.16,
-        align="right",
     )
     progress(d, 3)
     save(s.convert("RGB"), 3)
@@ -346,19 +336,19 @@ def main():
     progress(d, 5)
     save(s.convert("RGB"), 5)
 
-    # ----- 6 S08 CTA -----
+    # ----- 6 R6-B lower CTA card (after top map text) -----
     base = grade(cover(pano, W, H, (0.45, 0.55)), 1.1, 0.95, 1.1)
     base = ImageEnhance.Brightness(base).enhance(0.32)
     s = base.convert("RGBA")
     card = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     cd = ImageDraw.Draw(card)
-    cd.rounded_rectangle([56, 420, W - 56, 980], radius=32, fill=(12, 14, 12, 230))
-    cd.rounded_rectangle([56, 420, W - 56, 434], radius=8, fill=(*GREEN, 255))
+    cd.rounded_rectangle([56, 620, W - 56, 1180], radius=32, fill=(12, 14, 12, 230))
+    cd.rounded_rectangle([56, 620, W - 56, 634], radius=8, fill=(*GREEN, 255))
     s = Image.alpha_composite(s, card)
     d = ImageDraw.Draw(s, "RGBA")
     max_w = W - 192
     cx = 96
-    y = draw_stroke(d, "Зелёный Маршрут", (cx, 520), font(FONT_BOLD, 30), (159, 224, 180), max_w, align="center", stroke=3)
+    y = draw_stroke(d, "Зелёный Маршрут", (cx, 700), font(FONT_BOLD, 30), (159, 224, 180), max_w, align="center", stroke=3)
     y = draw_stroke(
         d,
         "Постройте интересный маршрут по Зелёному кольцу",
@@ -394,7 +384,7 @@ def main():
                     "cta",
                 ],
                 "layouts": LAYOUT_MIX,
-                "collages": ["slide-02 S09 two-up", "slide-03 S10 quad"],
+                "collages": ["slide-02 R2-D top-band two-up", "slide-03 R3-B quad + bottom stack"],
                 "map": "slide-05 Carto + ring + pin",
             },
             ensure_ascii=False,

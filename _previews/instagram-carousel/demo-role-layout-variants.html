@@ -36,7 +36,7 @@ a{color:#86efac}
 Канон: <code>docs/instagram/ROLE_LAYOUT_VARIANTS.md</code> ·
 рендер: <code>python3 render_role_layout_variants.py</code>
 </p>
-<p class="note">Соседние роли в посте — разные «семьи» раскладки.</p>
+<p class="note">Соседние роли: разная <b>вертикальная зона</b> текста (top / mid / bottom). После нижнего R1 — только верхний/центральный R2.</p>
 
 <!-- ========== ROLE 1 ========== -->
 <h2>Роль 1 · Вовлечение</h2>
@@ -73,37 +73,42 @@ a{color:#86efac}
 
 <!-- ========== ROLE 2 ========== -->
 <h2>Роль 2 · Об объекте</h2>
+<p class="note">После R1-A (низ) бери A–D. R2-E — только если хук был сверху.</p>
 <div class="grid">
-<div class="card"><h3>R2-A · коллаж-лента</h3><p>2 кадра сверху, текст внизу</p>
-<div class="frame">
-<div class="tile" style="left:0;top:0;width:50%;height:60%"></div>
-<div class="tile" style="left:50%;top:0;width:50%;height:60%;background:#52525b"></div>
-<div class="block dark" style="left:0;bottom:0;width:100%;height:34%"></div>
+<div class="card"><h3>R2-A · верх-лево · top</h3><p>Весь стек сверху слева</p>
+<div class="frame"><div class="ph"></div>
+<div class="block" style="left:8%;top:10%;width:7px;height:28%"></div>
+<div class="block cream" style="left:14%;top:10%;width:72%;height:22%"></div>
 <span class="lbl">R2-A</span>
 <img src="export/role-layout-variants/R2/R2-A.jpg" alt="" onerror="this.remove()"/></div></div>
 
-<div class="card"><h3>R2-B · сплит</h3><p>Заголовок сверху, тело снизу</p>
+<div class="card"><h3>R2-B · верх-право · top</h3><p>Весь стек сверху справа</p>
 <div class="frame"><div class="ph"></div>
-<div class="block" style="left:8%;top:10%;width:7px;height:12%"></div>
-<div class="block cream" style="left:14%;top:10%;width:60%;height:8%"></div>
-<div class="block cream" style="left:8%;bottom:12%;width:84%;height:18%"></div>
+<div class="block" style="right:8%;top:10%;width:7px;height:28%"></div>
+<div class="block cream" style="right:14%;top:10%;width:62%;height:22%"></div>
 <span class="lbl">R2-B</span>
 <img src="export/role-layout-variants/R2/R2-B.jpg" alt="" onerror="this.remove()"/></div></div>
 
-<div class="card"><h3>R2-C · низ-лево</h3><p>Стек снизу слева на full-bleed</p>
+<div class="card"><h3>R2-C · центр · mid</h3><p>Стек по центру кадра</p>
 <div class="frame"><div class="ph"></div>
-<div class="block" style="left:8%;bottom:12%;width:7px;height:28%"></div>
-<div class="block cream" style="left:14%;bottom:12%;width:72%;height:22%"></div>
+<div class="block cream" style="left:12%;top:38%;width:76%;height:22%"></div>
 <span class="lbl">R2-C</span>
 <img src="export/role-layout-variants/R2/R2-C.jpg" alt="" onerror="this.remove()"/></div></div>
 
-<div class="card"><h3>R2-D · низ-право</h3><p>Стек справа + опц. пин</p>
-<div class="frame"><div class="ph"></div>
-<div class="block warm" style="left:8%;top:8%;width:10%;height:7%;border-radius:50%"></div>
-<div class="block" style="right:8%;bottom:12%;width:7px;height:26%"></div>
-<div class="block cream" style="right:14%;bottom:12%;width:62%;height:20%"></div>
+<div class="card"><h3>R2-D · коллаж-верх · top</h3><p>Текст в верхней ленте, фото снизу</p>
+<div class="frame">
+<div class="block dark" style="left:0;top:0;width:100%;height:38%"></div>
+<div class="tile" style="left:0;top:38%;width:50%;height:62%"></div>
+<div class="tile" style="left:50%;top:38%;width:50%;height:62%;background:#52525b"></div>
 <span class="lbl">R2-D</span>
 <img src="export/role-layout-variants/R2/R2-D.jpg" alt="" onerror="this.remove()"/></div></div>
+
+<div class="card"><h3>R2-E · низ-лево · bottom</h3><p>Только после верхнего R1</p>
+<div class="frame"><div class="ph"></div>
+<div class="block" style="left:8%;bottom:12%;width:7px;height:28%"></div>
+<div class="block cream" style="left:14%;bottom:12%;width:72%;height:22%"></div>
+<span class="lbl">R2-E</span>
+<img src="export/role-layout-variants/R2/R2-E.jpg" alt="" onerror="this.remove()"/></div></div>
 </div>
 
 <!-- ========== ROLE 3 ========== -->
