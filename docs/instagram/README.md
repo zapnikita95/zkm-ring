@@ -19,7 +19,7 @@
 | Словарь семей S01–S10 | [`PLACEMENT_SCHEMAS.md`](./PLACEMENT_SCHEMAS.md) |
 | Motion / видео-слайды | [`MOTION_CAROUSELS.md`](./MOTION_CAROUSELS.md) |
 | Какие точки можно в video-heavy | [`VIDEO_POI_LIST.md`](./VIDEO_POI_LIST.md) |
-| **10 историй первой волны** | [`stories/INDEX.md`](./stories/INDEX.md) |
+| **10 историй первой волны** | [`stories/INDEX.md`](./stories/INDEX.md) · голос хука [`stories/_VOICE.md`](./stories/_VOICE.md) |
 | История / формулировки (эталон) | [`stories/zhivopisny-flying-saucer.md`](./stories/zhivopisny-flying-saucer.md) |
 | Шаблон новой истории | [`stories/_TEMPLATE.md`](./stories/_TEMPLATE.md) |
 | Place briefs | [`briefs/`](./briefs/) |
