@@ -8,6 +8,21 @@ description: >-
 
 # Instagram-карусели: точки ЗКМ → SCRL
 
+## Delivery (ОБЯЗАТЕЛЬНО при любой просьбе «карусель / Reels / пост»)
+
+Сначала собрать и **показать владельцу три пакета**, потом ждать выбор:
+
+| Пакет | Содержание |
+|-------|------------|
+| **PHOTO** | 6× JPEG 4:5 |
+| **VIDEO** | 6× MP4, живые клипы точки + карта на 05 |
+| **MIXED** | совмещённый: video + оживлённые stills + карта |
+
+Канон: `docs/instagram/DELIVERY_CANON.md` · индекс: `docs/instagram/README.md`  
+Сборка: `python3 assemble_delivery_pack.py --slug …` → `export/delivery-{slug}/` + `demo-delivery-{slug}.html`
+
+Нельзя отдавать один JPEG-набор как единственный финал без тройки.
+
 ## Бренд (не путать)
 
 | Канон | Значение |
@@ -232,8 +247,13 @@ Video-heavy (C) — только точки из `docs/instagram/VIDEO_POI_LIST.
 ## Motion (видео / оживлённые фото)
 
 См. `docs/instagram/MOTION_CAROUSELS.md` + `render_motion_demos.py`.  
-Демо: `demo-motion-carousels.html` (A mixed / B alive stills / C video-heavy).
+Демо: `demo-motion-carousels.html` (A mixed / B alive stills / C video-heavy).  
+В delivery-триаде: **C = VIDEO**, **A = MIXED**.
+
+## Индекс для переноса в другие продукты
+
+`docs/instagram/README.md` — карта файлов + портативный каркас (роли / зоны / тройка) для Movie Planner и т.п.
 
 ## Когда читать skill
 
-Любая задача про Instagram / карусель / SCRL / пост про точку на ЗКМ / place brief для Зелёный Маршрут.
+Любая задача про Instagram / карусель / Reels / SCRL / пост про точку на ЗКМ / place brief для Зелёный Маршрут.

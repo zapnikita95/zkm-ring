@@ -5,6 +5,9 @@ Agent skill: `.cursor/skills/instagram-carousel-green-route/SKILL.md`.
 
 **Не путать:** продукт — «Зелёный Маршрут», домен — `green-route.ru` (не Green Road, не movie-planner).
 
+**Входная карта:** [`docs/instagram/README.md`](instagram/README.md)  
+**Сдача поста:** всегда PHOTO + VIDEO + MIXED → [`DELIVERY_CANON.md`](instagram/DELIVERY_CANON.md)
+
 ---
 
 ## 1. Аудитория (Яндекс.Метрика)
@@ -136,8 +139,19 @@ Upload-эталон: `export/upload-zhivopisny/` · рендер `python3 render
 
 ---
 
-## 7. Дальше
+## 7. Delivery-триада (канон)
 
-- Несколько вариаций шаблона на ту же точку (следующий шаг).  
-- Reels из вау-фактов — отдельный skill.  
-- Остальные places 2–12 — brief + battle render.
+При запросе карусели / Reels-ready пакета агент **сначала** показывает:
+
+1. PHOTO — `export/delivery-{slug}/photo/`  
+2. VIDEO — `export/delivery-{slug}/video/`  
+3. MIXED — `export/delivery-{slug}/mixed/`  
+
+Превью: `demo-delivery-{slug}.html`. Эталон: `delivery-zhivopisny`.  
+Подробности: [`instagram/DELIVERY_CANON.md`](instagram/DELIVERY_CANON.md).
+
+## 8. Дальше
+
+- Остальные places 2–12 — brief + delivery-триада.  
+- Одиночный 9:16 Reels — по явному запросу после выбора пакета.  
+- Перенос каркаса в Movie Planner — § портативный в `instagram/README.md`.
