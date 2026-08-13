@@ -83,7 +83,8 @@ description: >-
 | 6 | Зазывалочка (CTA) |
 
 Канон: `docs/instagram/CAROUSEL_STRUCTURE.md` · шаблон: `stories/_TEMPLATE.md` · эталон: `stories/zhivopisny-flying-saucer.md`.  
-Плейсменты: `docs/instagram/PLACEMENT_SCHEMAS.md` (10 схем) — **соседи ≠ одна схема**.
+**Раскладки по ролям:** `docs/instagram/ROLE_LAYOUT_VARIANTS.md` (`R1–R6` × A–D) · демо `demo-role-layout-variants.html`.  
+Словарь семей: `PLACEMENT_SCHEMAS.md`. Соседи ≠ одна семья.
 
 ## Копирайт (жёстко)
 
