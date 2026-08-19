@@ -1,0 +1,25 @@
+{
+  "author": {
+    "name": "kaluga_trail",
+    "url": "https://www.instagram.com/kaluga_trail"
+  },
+  "routes": [
+    {
+      "id": "kaluga-trail-ugra-50",
+      "title": "БКТ: Угра (промаркированный участок)",
+      "theme": "forest",
+      "kmListed": 50.0,
+      "geojson": "data/routes/kaluga-trail-ugra-50.geojson",
+      "poisGeojson": "data/routes/kaluga-trail-ugra-50-pois.geojson"
+    },
+    {
+      "id": "kaluga-trail-ugra-day",
+      "title": "БКТ: дневной отрезок у Юхнова",
+      "theme": "forest",
+      "kmListed": 22.0,
+      "geojson": "data/routes/kaluga-trail-ugra-day.geojson",
+      "poisGeojson": "data/routes/kaluga-trail-ugra-day-pois.geojson"
+    }
+  ],
+  "note": "Approximate OSRM along BKT marked anchors; replace with official GPX from @kaluga_trail when available."
+}
