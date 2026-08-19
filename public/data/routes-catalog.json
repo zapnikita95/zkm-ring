@@ -899,6 +899,56 @@
       "cityId": "buryatia",
       "difficulty": "medium",
       "sourceNote": "https://biketravel.space/track/129"
+    },
+    {
+      "id": "kaluga-trail-ugra-day",
+      "title": "БКТ: дневной отрезок у Юхнова",
+      "description": "Короткий отрезок БКТ от Александровского городища до Беляево — удобно на выходной. По мотивам @kaluga_trail. ≈ 22 км по маркировке БКТ.",
+      "kmListed": 22.0,
+      "geojson": "data/routes/kaluga-trail-ugra-day.geojson",
+      "points": 3,
+      "source": "kaluga_trail",
+      "landmarks": [],
+      "featured": false,
+      "cityId": "kaluga",
+      "difficulty": "easy",
+      "theme": "forest",
+      "themeLabel": "лес / река",
+      "author": {
+        "name": "kaluga_trail",
+        "url": "https://www.instagram.com/kaluga_trail"
+      },
+      "sourceNote": "Большая Калужская тропа · @kaluga_trail · https://www.instagram.com/kaluga_trail",
+      "startLat": 54.749,
+      "startLon": 35.198,
+      "endLat": 54.716,
+      "endLon": 35.142,
+      "poisGeojson": "data/routes/kaluga-trail-ugra-day-pois.geojson"
+    },
+    {
+      "id": "kaluga-trail-ugra-50",
+      "title": "БКТ: Угра (промаркированный участок)",
+      "description": "Промаркированный участок Большой Калужской тропы вдоль р. Угра — лес, городище, мосты и турбазы нацпарка. По мотивам маршрутов @kaluga_trail. ≈ 50 км по маркировке БКТ.",
+      "kmListed": 50.0,
+      "geojson": "data/routes/kaluga-trail-ugra-50.geojson",
+      "points": 5,
+      "source": "kaluga_trail",
+      "landmarks": [],
+      "featured": true,
+      "cityId": "kaluga",
+      "difficulty": "medium",
+      "theme": "forest",
+      "themeLabel": "лес / река",
+      "author": {
+        "name": "kaluga_trail",
+        "url": "https://www.instagram.com/kaluga_trail"
+      },
+      "sourceNote": "Большая Калужская тропа · @kaluga_trail · https://www.instagram.com/kaluga_trail",
+      "startLat": 54.749,
+      "startLon": 35.198,
+      "endLat": 54.638,
+      "endLon": 34.952,
+      "poisGeojson": "data/routes/kaluga-trail-ugra-50-pois.geojson"
     }
   ],
   "cities": [
@@ -919,12 +969,12 @@
       "lon": 42.717
     },
     {
-      "id": "samara",
-      "title": "Самара",
-      "subtitle": "Веломаршруты области",
+      "id": "kaliningrad",
+      "title": "Калининград",
+      "subtitle": "Город, взморье и Куршская коса",
       "emoji": "🌊",
-      "lat": 53.2,
-      "lon": 50.15
+      "lat": 54.71,
+      "lon": 20.51
     },
     {
       "id": "nnov",
@@ -935,12 +985,12 @@
       "lon": 44.0
     },
     {
-      "id": "sevastopol",
-      "title": "Севастополь",
-      "subtitle": "Прогулки у моря",
-      "emoji": "⚓️",
-      "lat": 44.6,
-      "lon": 33.5
+      "id": "samara",
+      "title": "Самара",
+      "subtitle": "Набережная, костёл и Жигули",
+      "emoji": "🌊",
+      "lat": 53.2,
+      "lon": 50.15
     },
     {
       "id": "kirov",
@@ -951,12 +1001,28 @@
       "lon": 49.65
     },
     {
+      "id": "sevastopol",
+      "title": "Севастополь",
+      "subtitle": "Прогулки у моря",
+      "emoji": "⚓️",
+      "lat": 44.6,
+      "lon": 33.5
+    },
+    {
       "id": "buryatia",
       "title": "Бурятия",
       "subtitle": "Меркитская крепость",
       "emoji": "🏔",
       "lat": 51.15,
       "lon": 107.12
+    },
+    {
+      "id": "kaluga",
+      "title": "Калуга",
+      "subtitle": "Большая Калужская тропа и Угра",
+      "emoji": "🌲",
+      "lat": 54.51,
+      "lon": 36.26
     }
   ]
 }
